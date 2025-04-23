@@ -8,3 +8,28 @@
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+.phpunit.result.cache
+###< phpunit/phpunit ###
+
+###> symfony/phpunit-bridge ###
+/bin/.phpunit
+###< symfony/phpunit-bridge ###
+
+###> symfony/webpack-encore ###
+/node_modules/
+/public/build/
+###< symfony/webpack-encore ###
+
+###> IDE ###
+/.idea/
+/.vscode/
+/.php-cs-fixer.cache
+###< IDE ###
+
+###> OS ###
+.DS_Store
+Thumbs.db
+###< OS ###

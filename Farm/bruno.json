@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Farm",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
