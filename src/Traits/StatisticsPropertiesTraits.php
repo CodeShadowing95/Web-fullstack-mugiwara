@@ -2,16 +2,20 @@
 
 namespace App\Traits;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 trait StatisticsPropertiesTraits
 {
     #[ORM\Column]
+    #[Groups(["stats"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
+    #[Groups(["stats"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column(length: 10)]
+    #[Groups(["stats"])]
     private ?string $status = null;
 
     public function getCreatedAt(): ?\DateTimeImmutable
@@ -61,5 +65,20 @@ trait StatisticsPropertiesTraits
     public function updateTimestamps(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function softDelete(): void
+    {
+        $this->status = 'off';
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->status === 'off';
+    }
+
+    public function restore(): void
+    {
+        $this->status = 'on';
     }
 }
