@@ -1,0 +1,19 @@
+meta {
+  name: Create media
+  type: http
+  seq: 7
+}
+
+post {
+  url: https://localhost/api/v1/media/1
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file(C:\Users\cocog\Downloads\Capture d’écran 2025-04-14 212638.png)
+}
+
+body:file {
+  file: @file(C:\Users\cocog\Downloads\Capture d’écran 2025-04-14 212638.png) @contentType(image/png)
+}

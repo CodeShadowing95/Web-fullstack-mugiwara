@@ -41,6 +41,12 @@ class Product
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?Farm $farm = null;
 
+    #[ORM\Column]
+    private ?float $price = null;
+
+    #[ORM\Column]
+    private ?float $unitPrice = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -78,6 +84,30 @@ class Product
     public function setFarm(?Farm $farm): static
     {
         $this->farm = $farm;
+
+        return $this;
+    }
+
+    public function getPrice(): ?float
+    {
+        return $this->price;
+    }
+
+    public function setPrice(float $price): static
+    {
+        $this->price = $price;
+
+        return $this;
+    }
+
+    public function getUnitPrice(): ?float
+    {
+        return $this->unitPrice;
+    }
+
+    public function setUnitPrice(float $unitPrice): static
+    {
+        $this->unitPrice = $unitPrice;
 
         return $this;
     }
