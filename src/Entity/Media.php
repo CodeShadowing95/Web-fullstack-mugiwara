@@ -37,6 +37,9 @@ class Media
 
     #[Vich\UploadableField("media", fileNameProperty: 'realPath', mimeType: "mime")]
     private ?File $file = null;
+
+    #[ORM\ManyToOne(inversedBy: 'medias')]
+    private ?MediaType $mediaType = null;
     public function getId(): ?int
     {
         return $this->id;
@@ -124,5 +127,17 @@ class Media
     public function getFile(): ?File
     {
         return $this->file;
+    }
+
+    public function getMediaType(): ?MediaType
+    {
+        return $this->mediaType;
+    }
+
+    public function setMediaType(?MediaType $mediaType): static
+    {
+        $this->mediaType = $mediaType;
+
+        return $this;
     }
 }

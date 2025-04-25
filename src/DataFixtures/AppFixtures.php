@@ -5,6 +5,8 @@ use Faker\Factory;
 use App\Entity\Farm;
 use App\Entity\User;
 use App\Entity\Product;
+use App\Entity\Persona;
+use App\Entity\MediaType;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -66,6 +68,32 @@ class AppFixtures extends Fixture
             // $user->setEmail($this->faker->name() . '@' . $password);
             $users[] = $user;
             $manager->persist($user);
+        }
+
+        // Fixtures pour MediaType
+        $mediaTypes = [];
+        for ($i = 0; $i <= 5; $i++) {
+            $mediaType = new MediaType();
+            $mediaType->setName($this->faker->word);
+            $mediaType->setSlug($this->faker->slug);
+            $manager->persist($mediaType);
+            $mediaTypes[] = $mediaType;
+        }
+
+        // Fixtures pour Persona
+        foreach ($users as $user) {
+            $persona = new Persona();
+            $persona->setFirstName($this->faker->firstName);
+            $persona->setLastName($this->faker->lastName);
+            $persona->setPhoneNumber($this->faker->phoneNumber);
+            $persona->setAddress($this->faker->address);
+            $persona->setZipCode($this->faker->postcode);
+            $persona->setCity($this->faker->city);
+            $persona->setEmail($this->faker->email);
+            $persona->setBirthDate($this->faker->dateTimeBetween('-60 years', '-18 years'));
+            $persona->setGender($this->faker->randomElement(['male', 'female']));
+            $persona->setUser($user);
+            $manager->persist($persona);
         }
 
         $manager->flush();
