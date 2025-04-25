@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -31,6 +33,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    /**
+     * @var Collection<int, Farm>
+     */
+    // #[ORM\ManyToMany(targetEntity: Farm::class, inversedBy: 'users')]
+    // private Collection $farm;
+
+    /**
+     * @var Collection<int, FarmUser>
+     */
+    #[ORM\OneToMany(targetEntity: FarmUser::class, mappedBy: 'user_id')]
+    private Collection $farmUsers;
+
+    public function __construct()
+    {
+        // $this->farm = new ArrayCollection();
+        $this->farmUsers = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -105,5 +125,59 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Farm>
+     */
+    // public function getFarm(): Collection
+    // {
+    //     return $this->farm;
+    // }
+
+    // public function addFarm(Farm $farm): static
+    // {
+    //     if (!$this->farm->contains($farm)) {
+    //         $this->farm->add($farm);
+    //     }
+
+    //     return $this;
+    // }
+
+    // public function removeFarm(Farm $farm): static
+    // {
+    //     $this->farm->removeElement($farm);
+
+    //     return $this;
+    // }
+
+    /**
+     * @return Collection<int, FarmUser>
+     */
+    public function getFarmUsers(): Collection
+    {
+        return $this->farmUsers;
+    }
+
+    public function addFarmUser(FarmUser $farmUser): static
+    {
+        if (!$this->farmUsers->contains($farmUser)) {
+            $this->farmUsers->add($farmUser);
+            $farmUser->setUserId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFarmUser(FarmUser $farmUser): static
+    {
+        if ($this->farmUsers->removeElement($farmUser)) {
+            // set the owning side to null (unless already changed)
+            if ($farmUser->getUserId() === $this) {
+                $farmUser->setUserId(null);
+            }
+        }
+
+        return $this;
     }
 }
