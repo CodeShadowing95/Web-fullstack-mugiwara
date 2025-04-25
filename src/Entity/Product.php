@@ -49,6 +49,9 @@ class Product
     #[Groups(["farm"])]
     private ?float $unitPrice = null;
 
+    #[ORM\ManyToOne(inversedBy: 'products')]
+    private ?Unity $unity = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -110,6 +113,18 @@ class Product
     public function setUnitPrice(float $unitPrice): static
     {
         $this->unitPrice = $unitPrice;
+
+        return $this;
+    }
+
+    public function getUnity(): ?Unity
+    {
+        return $this->unity;
+    }
+
+    public function setUnity(?Unity $unity): static
+    {
+        $this->unity = $unity;
 
         return $this;
     }

@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -34,6 +36,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToOne(mappedBy: 'user_id', cascade: ['persist', 'remove'])]
     private ?Persona $persona = null;
+    /**
+     * @var Collection<int, Farm>
+     */
+    // #[ORM\ManyToMany(targetEntity: Farm::class, inversedBy: 'users')]
+    // private Collection $farm;
+
+    /**
+     * @var Collection<int, FarmUser>
+     */
+    #[ORM\OneToMany(targetEntity: FarmUser::class, mappedBy: 'user_id')]
+    private Collection $farmUsers;
+
+    public function __construct()
+    {
+        // $this->farm = new ArrayCollection();
+        $this->farmUsers = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -123,6 +142,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $this->persona = $persona;
+        return $this;
+    }
+
+
+    /**
+     * @return Collection<int, FarmUser>
+     */
+    public function getFarmUsers(): Collection
+    {
+        return $this->farmUsers;
+    }
+
+    public function addFarmUser(FarmUser $farmUser): static
+    {
+        if (!$this->farmUsers->contains($farmUser)) {
+            $this->farmUsers->add($farmUser);
+            $farmUser->setUserId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFarmUser(FarmUser $farmUser): static
+    {
+        if ($this->farmUsers->removeElement($farmUser)) {
+            // set the owning side to null (unless already changed)
+            if ($farmUser->getUserId() === $this) {
+                $farmUser->setUserId(null);
+            }
+        }
 
         return $this;
     }

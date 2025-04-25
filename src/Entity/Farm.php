@@ -55,9 +55,23 @@ class Farm
     #[Groups(["farm"])]
     private Collection $products;
 
+    /**
+     * @var Collection<int, User>
+     */
+    // #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'farm')]
+    // private Collection $role;
+
+    /**
+     * @var Collection<int, FarmUser>
+     */
+    #[ORM\OneToMany(targetEntity: FarmUser::class, mappedBy: 'farm_id')]
+    private Collection $farmUsers;
+
     public function __construct()
     {
         $this->products = new ArrayCollection();
+        // $this->role = new ArrayCollection();
+        $this->farmUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -125,6 +139,63 @@ class Farm
             // set the owning side to null (unless already changed)
             if ($product->getFarm() === $this) {
                 $product->setFarm(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    // public function getRole(): Collection
+    // {
+    //     return $this->role;
+    // }
+
+    // public function addRole(User $role): static
+    // {
+    //     if (!$this->role->contains($role)) {
+    //         $this->role->add($role);
+    //         $role->addFarm($this);
+    //     }
+
+    //     return $this;
+    // }
+
+    // public function removeRole(User $role): static
+    // {
+    //     if ($this->role->removeElement($role)) {
+    //         $role->removeFarm($this);
+    //     }
+
+    //     return $this;
+    // }
+
+    /**
+     * @return Collection<int, FarmUser>
+     */
+    public function getFarmUsers(): Collection
+    {
+        return $this->farmUsers;
+    }
+
+    public function addFarmUser(FarmUser $farmUser): static
+    {
+        if (!$this->farmUsers->contains($farmUser)) {
+            $this->farmUsers->add($farmUser);
+            $farmUser->setFarmId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFarmUser(FarmUser $farmUser): static
+    {
+        if ($this->farmUsers->removeElement($farmUser)) {
+            // set the owning side to null (unless already changed)
+            if ($farmUser->getFarmId() === $this) {
+                $farmUser->setFarmId(null);
             }
         }
 
