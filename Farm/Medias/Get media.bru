@@ -7,11 +7,7 @@ meta {
 get {
   url: https://localhost/api/v1/media/3
   body: multipartForm
-  auth: bearer
-}
-
-auth:bearer {
-  token: {{ jwt-token }}
+  auth: none
 }
 
 body:file {

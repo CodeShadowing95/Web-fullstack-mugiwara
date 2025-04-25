@@ -16,3 +16,7 @@ body:json {
     "password": "password"
   }
 }
+
+script:post-response {
+  bru.setEnvVar("jwt_token",res.body.token);
+}
