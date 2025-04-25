@@ -42,9 +42,11 @@ class Product
     private ?Farm $farm = null;
 
     #[ORM\Column]
+    #[Groups(["farm"])]
     private ?float $price = null;
 
     #[ORM\Column]
+    #[Groups(["farm"])]
     private ?float $unitPrice = null;
 
     public function getId(): ?int

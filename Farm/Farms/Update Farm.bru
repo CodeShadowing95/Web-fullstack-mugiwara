@@ -1,18 +1,18 @@
 meta {
-  name: Create Farm
+  name: Update Farm
   type: http
   seq: 4
 }
 
-post {
-  url: https://localhost/api/v1/farm
+patch {
+  url: https://localhost/api/v1/farm/22
   body: json
   auth: inherit
 }
 
 body:json {
   {
-     "name": "La ferme de Lyon Perrache",
+     "name": "La ferme de Lyon Perrache de Lyon",
      "address": "1 rue des fleurs, Lyon Perrache",
      "description": "une ferme qui vend des oeufs et des poules"
   }

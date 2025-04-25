@@ -35,9 +35,9 @@ nelmio_api_doc:
                 Credentials:
                     type: object
                     properties:
-                        username:
+                        uuid:
                             type: string
-                            default: admin@apidubienetre.com
+                            default: "1"
                         password:
                             type: string
                             default: password

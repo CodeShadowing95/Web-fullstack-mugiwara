@@ -1,0 +1,19 @@
+meta {
+  name: Get media
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://localhost/api/v1/media/3
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ jwt-token }}
+}
+
+body:file {
+  file: @file(C:\Users\cocog\Downloads\Capture d’écran 2025-04-14 212638.png) @contentType(image/png)
+}

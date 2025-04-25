@@ -42,7 +42,7 @@ final class FarmController extends AbstractController
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
-    #[Route('api/v1/farm/{id}', name: 'api_get_farm', methods: ['GET'])]
+    #[Route('api/v1/farm/{farm}', name: 'api_get_farm', methods: ['GET'])]
     #[OA\Parameter(
         name: 'farm',
         in: 'path',
