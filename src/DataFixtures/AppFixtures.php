@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Entity\Product;
 use App\Entity\Persona;
 use App\Entity\MediaType;
+use App\Entity\ProductCategory;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -25,6 +26,17 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
+        // Créer les catégories de produits
+        $categories = [];
+        $categoryNames = ['Fruits', 'Légumes', 'Viandes', 'Produits laitiers', 'Céréales'];
+        foreach ($categoryNames as $name) {
+            $category = new ProductCategory();
+            $category->setName($name);
+            $category->setDescription($this->faker->text(100));
+            $manager->persist($category);
+            $categories[] = $category;
+        }
+
         $products = [];
         for ($i = 0; $i <= 10; $i++) {
             $product = new Product();
@@ -32,7 +44,10 @@ class AppFixtures extends Fixture
             $product->setQuantity($this->faker->numberBetween(1, 50));
             $product->setUnitPrice($this->faker->randomFloat(2, 3,100));
             $product->setPrice($this->faker->randomFloat(2,3,100));
+            $randomCategory = $categories[array_rand($categories)];
+            $product->addCategory($randomCategory);
             $product->setStatus("on");
+            // Assigner une catégorie aléatoire au produit
             $manager->persist($product);
             $products[] = $product;
         }
