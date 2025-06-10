@@ -40,6 +40,12 @@ class Media
 
     #[ORM\ManyToOne(inversedBy: 'medias')]
     private ?MediaType $mediaType = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $entityType = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $entityId = null;
     public function getId(): ?int
     {
         return $this->id;
@@ -137,6 +143,30 @@ class Media
     public function setMediaType(?MediaType $mediaType): static
     {
         $this->mediaType = $mediaType;
+
+        return $this;
+    }
+
+    public function getEntityType(): ?string
+    {
+        return $this->entityType;
+    }
+
+    public function setEntityType(?string $entityType): static
+    {
+        $this->entityType = $entityType;
+
+        return $this;
+    }
+
+    public function getEntityId(): ?int
+    {
+        return $this->entityId;
+    }
+
+    public function setEntityId(?int $entityId): static
+    {
+        $this->entityId = $entityId;
 
         return $this;
     }
