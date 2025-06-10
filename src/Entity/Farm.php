@@ -52,7 +52,7 @@ class Farm
      * @var Collection<int, Product>
      */
     #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'farm')]
-    #[Groups(["farm"])]
+    #[Groups(["farm", "farm_products"])]
     private Collection $products;
 
     /**
@@ -67,11 +67,27 @@ class Farm
     #[ORM\OneToMany(targetEntity: FarmUser::class, mappedBy: 'farm_id')]
     private Collection $farmUsers;
 
+    #[ORM\Column(length: 5)]
+    #[Groups(["farm"])]
+    private ?string $zipCode = null;
+
+    #[ORM\Column(length: 255)]
+    #[Groups(["farm"])]
+    private ?string $city = null;
+
+    /**
+     * @var Collection<int, FarmType>
+     */
+    #[ORM\ManyToMany(targetEntity: FarmType::class, inversedBy: 'farms')]
+    #[Groups(["farm"])]
+    private Collection $types;
+
     public function __construct()
     {
         $this->products = new ArrayCollection();
         // $this->role = new ArrayCollection();
         $this->farmUsers = new ArrayCollection();
+        $this->types = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -198,6 +214,54 @@ class Farm
                 $farmUser->setFarmId(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getZipCode(): ?string
+    {
+        return $this->zipCode;
+    }
+
+    public function setZipCode(string $zipCode): static
+    {
+        $this->zipCode = $zipCode;
+
+        return $this;
+    }
+
+    public function getCity(): ?string
+    {
+        return $this->city;
+    }
+
+    public function setCity(string $city): static
+    {
+        $this->city = $city;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FarmType>
+     */
+    public function getTypes(): Collection
+    {
+        return $this->types;
+    }
+
+    public function addType(FarmType $type): static
+    {
+        if (!$this->types->contains($type)) {
+            $this->types->add($type);
+        }
+
+        return $this;
+    }
+
+    public function removeType(FarmType $type): static
+    {
+        $this->types->removeElement($type);
 
         return $this;
     }
