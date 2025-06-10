@@ -1,0 +1,18 @@
+meta {
+  name: createProductCategory
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://localhost/api/v1/product-category
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+  "name": "Bio",
+    "description": "Eos in et rem debitis error in voluptates. Quia possimus quos"
+  }
+}

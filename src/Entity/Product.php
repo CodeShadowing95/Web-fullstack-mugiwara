@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ProductRepository;
 use App\Traits\StatisticsPropertiesTraits;
@@ -18,11 +20,11 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["farm"])]
+    #[Groups(["farm","product","category_details"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["farm"])]
+    #[Groups(["farm","product","category_details"])]
     #[Assert\NotBlank(message: "Le nom du produit ne peut pas être vide")]
     #[Assert\Length(
         min: 2,
@@ -33,24 +35,37 @@ class Product
     private ?string $name = null;
 
     #[ORM\Column]
-    #[Groups(["farm"])]
+    #[Groups(["farm","category_details"])]
     #[Assert\NotBlank(message: "La quantité ne peut pas être vide")]
     #[Assert\PositiveOrZero(message: "La quantité doit être positive ou nulle")]
     private ?int $quantity = null;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
+    #[Groups(["product"])]
     private ?Farm $farm = null;
 
     #[ORM\Column]
-    #[Groups(["farm"])]
+    #[Groups(["farm", "category_details"])]
     private ?float $price = null;
 
     #[ORM\Column]
-    #[Groups(["farm"])]
+    #[Groups(["farm", "category_details"])]
     private ?float $unitPrice = null;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?Unity $unity = null;
+
+    /**
+     * @var Collection<int, ProductCategory>
+     */
+    #[ORM\ManyToMany(targetEntity: ProductCategory::class, inversedBy: 'products')]
+    #[Groups(["product"])]
+    private Collection $category;
+
+    public function __construct()
+    {
+        $this->category = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -125,6 +140,30 @@ class Product
     public function setUnity(?Unity $unity): static
     {
         $this->unity = $unity;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProductCategory>
+     */
+    public function getCategory(): Collection
+    {
+        return $this->category;
+    }
+
+    public function addCategory(ProductCategory $category): static
+    {
+        if (!$this->category->contains($category)) {
+            $this->category->add($category);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(ProductCategory $category): static
+    {
+        $this->category->removeElement($category);
 
         return $this;
     }
