@@ -52,7 +52,7 @@ class Farm
      * @var Collection<int, Product>
      */
     #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'farm')]
-    #[Groups(["farm", "farm_products"])]
+    #[Groups(["farm_products"])]
     private Collection $products;
 
     /**
@@ -207,7 +207,7 @@ class Farm
     {
         if (!$this->farmUsers->contains($farmUser)) {
             $this->farmUsers->add($farmUser);
-            $farmUser->setFarmId($this);
+            $farmUser->setFarm($this);
         }
 
         return $this;
@@ -217,8 +217,8 @@ class Farm
     {
         if ($this->farmUsers->removeElement($farmUser)) {
             // set the owning side to null (unless already changed)
-            if ($farmUser->getFarmId() === $this) {
-                $farmUser->setFarmId(null);
+            if ($farmUser->getFarm() === $this) {
+                $farmUser->setFarm(null);
             }
         }
 

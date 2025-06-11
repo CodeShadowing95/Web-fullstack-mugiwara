@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Farm;
+use App\Entity\FarmUser;
 use OpenApi\Attributes as OA;
 use App\Repository\FarmRepository;
 use App\Repository\ProductRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +23,7 @@ use App\Repository\FarmTypeRepository;
 
 final class FarmController extends AbstractController
 {
-    #[Route('api/v1/farms', name: 'api_get_all_farm', methods: ['GET'])]
+    #[Route('api/public/v1/farms', name: 'api_get_all_farm', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Returns a list of all farms',
@@ -43,7 +45,7 @@ final class FarmController extends AbstractController
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
-    #[Route('api/v1/farm/{farm}', name: 'api_get_farm', methods: ['GET'])]
+    #[Route('api/public/v1/farm/{farm}', name: 'api_get_farm', methods: ['GET'])]
     #[OA\Parameter(
         name: 'farm',
         in: 'path',
@@ -74,7 +76,7 @@ final class FarmController extends AbstractController
         in: 'body',
         description: 'Name of the farm',
         required: true,
-        schema: new OA\Schema(ref: new Model(type: Farm::class)), 
+        schema: new OA\Schema(ref: new Model(type: Farm::class)),
     )]
     #[OA\Parameter(
         name: 'address',
@@ -104,16 +106,6 @@ final class FarmController extends AbstractController
         required: true,
         schema: new OA\Schema(ref: new Model(type: Farm::class)),
     )]
-    #[OA\Property(
-        property: 'products',
-        type: 'array',
-        items: new OA\Items(type: 'integer')
-    )]
-    #[OA\Property(
-        property: 'types',
-        type: 'array',
-        items: new OA\Items(type: 'integer')
-    )]
     #[OA\Response(
         response: 201,
         description: 'Returns the created farm',
@@ -125,16 +117,24 @@ final class FarmController extends AbstractController
      * @param \Symfony\Component\Routing\Generator\UrlGeneratorInterface $urlGenerator
      * @param \App\Repository\ProductRepository $productRepository
      * @param \App\Repository\FarmTypeRepository $farmTypeRepository
+     * @param \App\Repository\UserRepository $userRepository
      * @param \Symfony\Component\Serializer\SerializerInterface $serializer
      * @param \Doctrine\ORM\EntityManagerInterface $entityManager
      * @param \Symfony\Component\Validator\Validator\ValidatorInterface $validator
      * @return JsonResponse
      */
-    public function create(Request $request, UrlGeneratorInterface $urlGenerator, ProductRepository $productRepository, FarmTypeRepository $farmTypeRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
+    public function create(Request $request, UrlGeneratorInterface $urlGenerator, ProductRepository $productRepository, FarmTypeRepository $farmTypeRepository, UserRepository $userRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
     {
         $farm = $serializer->deserialize($request->getContent(), Farm::class, 'json');
         $requestData = $request->toArray();
-        
+
+        // Supprimer les FarmType vides créés par la désérialisation
+        foreach ($farm->getTypes() as $type) {
+            if (null === $type->getId()) {
+                $farm->removeType($type);
+            }
+        }
+
         // Handle products
         $productsData = $requestData['products'] ?? [];
         foreach ($productsData as $productId) {
@@ -143,8 +143,9 @@ final class FarmController extends AbstractController
                 $farm->addProduct($product);
             }
         }
-        
+
         // Handle farm types
+        $farm->getTypes()->clear();
         $typesData = $requestData['types'] ?? [];
         foreach ($typesData as $typeId) {
             $type = $farmTypeRepository->find($typeId);
@@ -152,16 +153,28 @@ final class FarmController extends AbstractController
                 $farm->addType($type);
             }
         }
-        
+
         $farm->setStatus('on');
+        // Ajout automatique du FarmUser pour le user connecté en owner
+        $user = $this->getUser();
+        if ($user) {
+            $farmUser = new FarmUser();
+            $farmUser->setUser($user);
+            $farmUser->setFarm($farm);
+            $farmUser->setRole('owner');
+            $entityManager->persist($farmUser);
+        }
         $errors = $validator->validate($farm);
         if (count($errors) > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
         }
         $entityManager->persist($farm);
         $entityManager->flush();
-        $jsonData = $serializer->serialize($farm, 'json');
-        $location = $urlGenerator->generate('get_farm', ['farm' => $farm->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $jsonData = $serializer->serialize($farm, 'json', [
+            'groups' => ['farm', 'farm_products'],
+            'enable_max_depth' => true
+        ]);
+        $location = $urlGenerator->generate('api_get_farm', ['farm' => $farm->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         return new JsonResponse($jsonData, Response::HTTP_CREATED, ["location" => $location], true);
     }
 
@@ -177,14 +190,14 @@ final class FarmController extends AbstractController
      * @param \Symfony\Component\Validator\Validator\ValidatorInterface $validator
      * @return JsonResponse
      */
-    public function update(Farm $farm, Request $request, ProductRepository $productRepository, FarmTypeRepository $farmTypeRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse 
+    public function update(Farm $farm, Request $request, ProductRepository $productRepository, FarmTypeRepository $farmTypeRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
     {
         $updatedFarm = $serializer->deserialize(
             $request->getContent(), Farm::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $farm]
         );
-        
+
         $requestData = $request->toArray();
-        
+
         // Handle products
         if (isset($requestData['products'])) {
             $farm->getProducts()->clear();
@@ -195,7 +208,7 @@ final class FarmController extends AbstractController
                 }
             }
         }
-        
+
         // Handle farm types
         if (isset($requestData['types'])) {
             $farm->getTypes()->clear();
@@ -206,12 +219,12 @@ final class FarmController extends AbstractController
                 }
             }
         }
-        
+
         $errors = $validator->validate($updatedFarm);
         if (count($errors) > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
         }
-        
+
         $entityManager->persist($updatedFarm);
         $entityManager->flush();
         return new JsonResponse(null, Response::HTTP_NO_CONTENT, [], true);
@@ -228,14 +241,55 @@ final class FarmController extends AbstractController
     public function delete(Farm $farm, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $requestData = json_decode($request->getContent(), true);
-        
+
         if(isset($requestData['hard']) && $requestData['hard'] === true) {
             $entityManager->remove($farm);
         } else {
             $farm->softDelete();
         }
-        
+
         $entityManager->flush();
         return new JsonResponse(null, Response::HTTP_NO_CONTENT, []);
+    }
+
+    #[Route('api/v1/farm/{farm}/members', name: 'api_add_farm_member', methods: ['POST'])]
+    /**
+     * Ajoute un membre (FarmUser) à une ferme existante
+     * @param Farm $farm
+     * @param Request $request
+     * @param UserRepository $userRepository
+     * @param EntityManagerInterface $entityManager
+     * @param SerializerInterface $serializer
+     * @param ValidatorInterface $validator
+     * @return JsonResponse
+     */
+    public function addMember(
+        Farm $farm,
+        Request $request,
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager,
+        SerializerInterface $serializer,
+        ValidatorInterface $validator
+    ): JsonResponse {
+        $data = $request->toArray();
+        if (!isset($data['user_id'])) {
+            return new JsonResponse(['error' => 'user_id manquant'], Response::HTTP_BAD_REQUEST);
+        }
+        $user = $userRepository->find($data['user_id']);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Utilisateur non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+        $role = $data['role'] ?? 'member';
+        $farmUser = new FarmUser();
+        $farmUser->setUser($user);
+        $farmUser->setFarm($farm);
+        $farmUser->setRole($role);
+        $errors = $validator->validate($farmUser);
+        if (count($errors) > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
+        }
+        $entityManager->persist($farmUser);
+        $entityManager->flush();
+        return new JsonResponse(['message' => 'Membre ajouté à la ferme'], Response::HTTP_CREATED);
     }
 }

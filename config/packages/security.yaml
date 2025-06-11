@@ -10,6 +10,8 @@ security:
             entity:
                 class: App\Entity\User
                 property: uuid
+        app_persona_provider:
+            id: App\Security\PersonaUserProvider
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -17,14 +19,19 @@ security:
         login:
             pattern: ^/api/login
             stateless: true
+            provider: app_persona_provider
             json_login:
                 check_path: /api/login_check
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        public:
+            pattern: ^/api/public
+            stateless: true
         api:
             pattern: ^/api
             stateless: true
             entry_point: jwt
+            provider: app_persona_provider
             json_login:
                 check_path: /api/login # or, if you have defined a route for your login path, the route name you used
                 success_handler: lexik_jwt_authentication.handler.authentication_success
@@ -36,6 +43,7 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        - { path: ^/api/public, roles: PUBLIC_ACCESS }
         - { path: ^/api/(login|token/refresh), roles: PUBLIC_ACCESS }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/doc, roles: PUBLIC_ACCESS }

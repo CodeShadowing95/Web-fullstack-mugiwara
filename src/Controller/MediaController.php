@@ -23,7 +23,7 @@ final class MediaController extends AbstractController
             'path' => 'src/Controller/MediaController.php',
         ]);
     }
-    #[Route('/api/v1/media/{media}', name: 'api_get_media', methods: ['GET'])]
+    #[Route('/api/public/v1/media/{media}', name: 'api_get_media', methods: ['GET'])]
     public function get(Media $media, UrlGeneratorInterface $urlGenerator, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
         $location = $urlGenerator->generate("app_media", [], UrlGeneratorInterface::ABSOLUTE_URL);
