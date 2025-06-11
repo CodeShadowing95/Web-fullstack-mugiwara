@@ -10,6 +10,8 @@ security:
             entity:
                 class: App\Entity\User
                 property: uuid
+        app_persona_provider:
+            id: App\Security\PersonaUserProvider
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -17,6 +19,7 @@ security:
         login:
             pattern: ^/api/login
             stateless: true
+            provider: app_persona_provider
             json_login:
                 check_path: /api/login_check
                 success_handler: lexik_jwt_authentication.handler.authentication_success
@@ -24,11 +27,11 @@ security:
         public:
             pattern: ^/api/public
             stateless: true
-            anonymous: true
         api:
             pattern: ^/api
             stateless: true
             entry_point: jwt
+            provider: app_persona_provider
             json_login:
                 check_path: /api/login # or, if you have defined a route for your login path, the route name you used
                 success_handler: lexik_jwt_authentication.handler.authentication_success
