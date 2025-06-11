@@ -20,11 +20,11 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["farm","product","category_details"])]
+    #[Groups(["farm", "product", "category_details"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["farm","product","category_details"])]
+    #[Groups(["farm", "product", "category_details"])]
     #[Assert\NotBlank(message: "Le nom du produit ne peut pas être vide")]
     #[Assert\Length(
         min: 2,
@@ -35,17 +35,17 @@ class Product
     private ?string $name = null;
 
     #[ORM\Column]
-    #[Groups(["farm","category_details"])]
+    #[Groups(["farm","category_details", "product"])]
     #[Assert\NotBlank(message: "La quantité ne peut pas être vide")]
     #[Assert\PositiveOrZero(message: "La quantité doit être positive ou nulle")]
     private ?int $quantity = null;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
-    #[Groups(["product"])]
+    #[Groups(["product_details",])]
     private ?Farm $farm = null;
 
     #[ORM\Column]
-    #[Groups(["farm", "category_details"])]
+    #[Groups(["farm", "category_details", "product"])]
     private ?float $price = null;
 
     #[ORM\Column]
@@ -59,7 +59,7 @@ class Product
      * @var Collection<int, ProductCategory>
      */
     #[ORM\ManyToMany(targetEntity: ProductCategory::class, inversedBy: 'products')]
-    #[Groups(["product"])]
+    #[Groups(["product_details","product"])]
     private Collection $category;
 
     public function __construct()

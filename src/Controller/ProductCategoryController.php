@@ -70,7 +70,7 @@ final class ProductCategoryController extends AbstractController
     )]
     public function get(ProductCategory $category, SerializerInterface $serializer): JsonResponse
     {
-        $jsonData = $serializer->serialize($category, 'json', ['groups' => ['category', 'category_details','']]);
+        $jsonData = $serializer->serialize($category, 'json', ['groups' => ['category', ]]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
