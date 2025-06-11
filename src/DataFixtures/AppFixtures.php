@@ -9,6 +9,7 @@ use App\Entity\Product;
 use App\Entity\Persona;
 use App\Entity\MediaType;
 use App\Entity\ProductCategory;
+use App\Entity\FarmUser;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -52,33 +53,6 @@ class AppFixtures extends Fixture
             $products[] = $product;
         }
 
-        // farm types
-        $farmTypes = [];
-        for ($i = 0; $i <= 5; $i++) {
-            $farmType = new FarmType();
-            $farmType->setName($this->faker->word);
-            $farmType->setDescription($this->faker->text(20));
-            $manager->persist($farmType);
-            $farmTypes[] = $farmType;
-        }
-
-        for ($i = 0; $i <= 10; $i++) {
-            $farm = new Farm();
-            $farm->setName($this->faker->company);
-            $farm->setAddress($this->faker->address);
-            $farm->setZipCode($this->faker->postcode);
-            $farm->setCity($this->faker->city);
-            $farm->setDescription($this->faker->text(20));
-            $farm->setStatus("on");
-            
-            // Associer chaque ferme à un produit et vice versa
-            $product = array_shift($products);
-            $farm->addProduct($product);
-            $farm->addType($farmTypes[array_rand($farmTypes)]);
-            
-            $manager->persist($farm);
-        }
-
         $users = [];
 
         $user = new User();
@@ -97,6 +71,38 @@ class AppFixtures extends Fixture
             // $user->setEmail($this->faker->name() . '@' . $password);
             $users[] = $user;
             $manager->persist($user);
+        }
+
+        // farm types
+        $farmTypes = [];
+        for ($i = 0; $i <= 5; $i++) {
+            $farmType = new FarmType();
+            $farmType->setName($this->faker->word);
+            $farmType->setDescription($this->faker->text(20));
+            $manager->persist($farmType);
+            $farmTypes[] = $farmType;
+        }
+
+        for ($i = 0; $i <= 10; $i++) {
+            $farm = new Farm();
+            $farm->setName($this->faker->company);
+            $farm->setAddress($this->faker->address);
+            $farm->setZipCode($this->faker->postcode);
+            $farm->setCity($this->faker->city);
+            $farm->setDescription($this->faker->text(20));
+            $farm->setStatus("on");
+
+            // Associer chaque ferme à un produit et vice versa
+            $product = array_shift($products);
+            $farm->addProduct($product);
+            $farm->addType($farmTypes[array_rand($farmTypes)]);
+            $farmUser = new FarmUser();
+            $farmUser->setUser(array_shift($users));
+            $farmUser->setFarm($farm);
+            $farmUser->setRole($this->faker->randomElement(['owner', 'manager', 'employee']));
+            $manager->persist($farmUser);
+
+            $manager->persist($farm);
         }
 
         // Fixtures pour MediaType

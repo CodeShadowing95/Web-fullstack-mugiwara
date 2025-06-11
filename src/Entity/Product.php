@@ -20,11 +20,11 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["farm","product","category_details"])]
+    #[Groups(["farm_products","product","category_details"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["farm","product","category_details"])]
+    #[Groups(["farm_products","product","category_details"])]
     #[Assert\NotBlank(message: "Le nom du produit ne peut pas être vide")]
     #[Assert\Length(
         min: 2,
@@ -35,7 +35,7 @@ class Product
     private ?string $name = null;
 
     #[ORM\Column]
-    #[Groups(["farm","category_details"])]
+    #[Groups(["farm_products","category_details"])]
     #[Assert\NotBlank(message: "La quantité ne peut pas être vide")]
     #[Assert\PositiveOrZero(message: "La quantité doit être positive ou nulle")]
     private ?int $quantity = null;
@@ -45,11 +45,11 @@ class Product
     private ?Farm $farm = null;
 
     #[ORM\Column]
-    #[Groups(["farm", "category_details"])]
+    #[Groups(["farm_products", "category_details"])]
     private ?float $price = null;
 
     #[ORM\Column]
-    #[Groups(["farm", "category_details"])]
+    #[Groups(["farm_products", "category_details"])]
     private ?float $unitPrice = null;
 
     #[ORM\ManyToOne(inversedBy: 'products')]

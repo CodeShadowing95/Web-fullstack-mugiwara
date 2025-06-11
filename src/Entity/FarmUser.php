@@ -13,11 +13,13 @@ class FarmUser
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'farmUsers')]
-    private ?User $user_id = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'farmUsers')]
-    private ?Farm $farm_id = null;
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Farm $farm = null;
 
     #[ORM\Column(length: 255)]
     private ?string $role = null;
@@ -27,26 +29,26 @@ class FarmUser
         return $this->id;
     }
 
-    public function getUserId(): ?User
+    public function getUser(): ?User
     {
-        return $this->user_id;
+        return $this->user;
     }
 
-    public function setUserId(?User $user_id): static
+    public function setUser(?User $user): static
     {
-        $this->user_id = $user_id;
+        $this->user = $user;
 
         return $this;
     }
 
-    public function getFarmId(): ?Farm
+    public function getFarm(): ?Farm
     {
-        return $this->farm_id;
+        return $this->farm;
     }
 
-    public function setFarmId(?Farm $farm_id): static
+    public function setFarm(?Farm $farm): static
     {
-        $this->farm_id = $farm_id;
+        $this->farm = $farm;
 
         return $this;
     }
