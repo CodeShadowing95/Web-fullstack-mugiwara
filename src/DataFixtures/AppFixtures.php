@@ -140,6 +140,7 @@ class AppFixtures extends Fixture
         }
 
         $users = [];
+        $usersForFarm = [];
 
         $user = new User();
         $password = $this->userPasswordHasher->hashPassword($user, "password");
@@ -154,8 +155,8 @@ class AppFixtures extends Fixture
             $user->setUuid($this->faker->uuid)
                 ->setPassword($password)
                 ->setRoles(['ROLE_USER']);
-            // $user->setEmail($this->faker->name() . '@' . $password);
             $users[] = $user;
+            $usersForFarm[] = $user;
             $manager->persist($user);
         }
 
@@ -183,7 +184,7 @@ class AppFixtures extends Fixture
             $farm->addProduct($product);
             $farm->addType($farmTypes[array_rand($farmTypes)]);
             $farmUser = new FarmUser();
-            $farmUser->setUser(array_shift($users));
+            $farmUser->setUser($usersForFarm[$i]);
             $farmUser->setFarm($farm);
             $farmUser->setRole($this->faker->randomElement(['owner', 'manager', 'employee']));
             $manager->persist($farmUser);
@@ -202,6 +203,7 @@ class AppFixtures extends Fixture
         }
 
         // Fixtures pour Persona
+        $personaIndex = 0;
         foreach ($users as $user) {
             $persona = new Persona();
             $persona->setFirstName($this->faker->firstName);
@@ -210,11 +212,16 @@ class AppFixtures extends Fixture
             $persona->setAddress($this->faker->address);
             $persona->setZipCode($this->faker->postcode);
             $persona->setCity($this->faker->city);
-            $persona->setEmail($this->faker->email);
+            if ($personaIndex === 0) {
+                $persona->setEmail('test@test.com');
+            } else {
+                $persona->setEmail($this->faker->email);
+            }
             $persona->setBirthDate($this->faker->dateTimeBetween('-60 years', '-18 years'));
             $persona->setGender($this->faker->randomElement(['male', 'female']));
             $persona->setUser($user);
             $manager->persist($persona);
+            $personaIndex++;
         }
 
         $manager->flush();

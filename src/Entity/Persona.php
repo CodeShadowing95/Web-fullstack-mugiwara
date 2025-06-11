@@ -13,7 +13,7 @@ class Persona
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'email', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'persona', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
