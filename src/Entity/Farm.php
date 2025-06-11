@@ -82,12 +82,19 @@ class Farm
     #[Groups(["farm"])]
     private Collection $types;
 
+    /**
+     * @var Collection<int, Order>
+     */
+    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'farm')]
+    private Collection $orders;
+
     public function __construct()
     {
         $this->products = new ArrayCollection();
         // $this->role = new ArrayCollection();
         $this->farmUsers = new ArrayCollection();
         $this->types = new ArrayCollection();
+        $this->orders = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -262,6 +269,36 @@ class Farm
     public function removeType(FarmType $type): static
     {
         $this->types->removeElement($type);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Order>
+     */
+    public function getOrders(): Collection
+    {
+        return $this->orders;
+    }
+
+    public function addOrder(Order $order): static
+    {
+        if (!$this->orders->contains($order)) {
+            $this->orders->add($order);
+            $order->setFarm($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrder(Order $order): static
+    {
+        if ($this->orders->removeElement($order)) {
+            // set the owning side to null (unless already changed)
+            if ($order->getFarm() === $this) {
+                $order->setFarm(null);
+            }
+        }
 
         return $this;
     }
