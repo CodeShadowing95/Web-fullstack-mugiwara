@@ -41,7 +41,7 @@ class Product
     private ?int $quantity = null;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
-    #[Groups(["product"])]
+    #[Groups(["product_details",])]
     private ?Farm $farm = null;
 
     #[ORM\Column]
@@ -59,7 +59,7 @@ class Product
      * @var Collection<int, ProductCategory>
      */
     #[ORM\ManyToMany(targetEntity: ProductCategory::class, inversedBy: 'products')]
-    #[Groups(["product"])]
+    #[Groups(["product_details","product"])]
     private Collection $category;
 
     public function __construct()

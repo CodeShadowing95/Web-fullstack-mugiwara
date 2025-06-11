@@ -19,13 +19,28 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class ProductCategoryController extends AbstractController
 {
+    #[OA\Info(
+        version: "1.0.0",
+        description: "API for managing product categories",
+        title: "Product Categories API"
+    )]
     #[Route('api/v1/product-categories', name: 'api_get_all_product_categories', methods: ['GET'])]
+    #[OA\Tag(name: 'Product Categories')]
     #[OA\Response(
         response: 200,
         description: 'Returns all product categories',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: ProductCategory::class))
+            items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
+        )
+    )]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns all product categories',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
         )
     )]
     public function getAll(ProductCategoryRepository $repository, SerializerInterface $serializer): JsonResponse
@@ -36,22 +51,49 @@ final class ProductCategoryController extends AbstractController
     }
 
     #[Route('api/v1/product-category/{id}', name: 'api_get_product_category', methods: ['GET'])]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID of product category',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
     #[OA\Response(
         response: 200,
-        description: 'Returns a product category',
-        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class))
+        description: 'Returns a product category with its products',
+        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class, groups: ['category', 'category_details']))
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Product category not found'
     )]
     public function get(ProductCategory $category, SerializerInterface $serializer): JsonResponse
     {
-        $jsonData = $serializer->serialize($category, 'json', ['groups' => ['category', 'category_details','']]);
+        $jsonData = $serializer->serialize($category, 'json', ['groups' => ['category', ]]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
     #[Route('api/v1/product-category', name: 'api_create_product_category', methods: ['POST'])]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\RequestBody(
+        description: 'Product category data',
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'name', type: 'string', example: 'Fruits'),
+                new OA\Property(property: 'description', type: 'string', example: 'Fresh fruits category')
+            ]
+        )
+    )]
     #[OA\Response(
         response: 201,
-        description: 'Creates a new product category',
-        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class))
+        description: 'Product category created successfully',
+        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class, groups: ['category']))
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Invalid input'
     )]
     public function create(
         Request $request, 
@@ -78,10 +120,35 @@ final class ProductCategoryController extends AbstractController
     }
 
     #[Route('api/v1/product-category/{id}', name: 'api_update_product_category', methods: ['PATCH'])]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID of product category to update',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\RequestBody(
+        description: 'Fields to update',
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'name', type: 'string', example: 'Updated Fruits'),
+                new OA\Property(property: 'description', type: 'string', example: 'Updated description')
+            ]
+        )
+    )]
     #[OA\Response(
-        response: 200,
-        description: 'Updates a product category',
-        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class))
+        response: 204,
+        description: 'Product category updated successfully'
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Invalid input'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Product category not found'
     )]
     public function update(
         ProductCategory $category,
@@ -108,6 +175,22 @@ final class ProductCategoryController extends AbstractController
     }
 
     #[Route('api/v1/product-category/{id}', name: 'api_delete_product_category', methods: ['DELETE'])]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID of product category to delete',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 204,
+        description: 'Product category deleted successfully'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Product category not found'
+    )]
     public function delete(ProductCategory $category, EntityManagerInterface $em): JsonResponse
     {
         $em->remove($category);
