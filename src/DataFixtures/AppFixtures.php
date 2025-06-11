@@ -1,4 +1,5 @@
 <?php
+
 namespace App\DataFixtures;
 
 use App\Entity\FarmType;
@@ -27,24 +28,109 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
+
         // Créer les catégories de produits
         $categories = [];
-        $categoryNames = ['Fruits', 'Légumes', 'Viandes', 'Produits laitiers', 'Céréales'];
-        foreach ($categoryNames as $name) {
-            $category = new ProductCategory();
-            $category->setName($name);
-            $category->setDescription($this->faker->text(100));
-            $manager->persist($category);
-            $categories[] = $category;
+        $categoriesData = [
+            [
+                "categorie" => "Fruits & Légumes de saison",
+                "children" => [
+                    "Produits de saison",
+                    "Légumes anciens",
+                    "Herbes fraîches",
+                    "Fruits"
+                ]
+            ],
+            [
+                "categorie" => "Viandes & Produits Animaux",
+                "children" => [
+                    "Viande",
+                    "Oeufs",
+                    "Produits transformés",
+                    "Volaille prête à cuire"
+                ]
+            ],
+            [
+                "categorie" => "Produits Laitiers",
+                "children" => [
+                    "Lait cru ou pasteurisé",
+                    "Fromages",
+                    "Yaourts artisanaux",
+                    "Beurre, crème"
+                ]
+            ],
+            [
+                "categorie" => "Boulangerie & Pâtisserie",
+                "children" => [
+                    "Pain au levain",
+                    "Brioche",
+                    "Cookies",
+                    "Tarte rustique"
+                ]
+            ],
+            [
+                "categorie" => "Produits Transformés",
+                "children" => [
+                    "Miel",
+                    "Confiture",
+                    "Sauce tomate",
+                    "Farine"
+                ]
+            ],
+            [
+                "categorie" => "Plantes & Jardin",
+                "children" => [
+                    "Basilic",
+                    "Fleurs séchées",
+                    "Compost",
+                    "Tomates cerise (plant)"
+                ]
+            ],
+            [
+                "categorie" => "Boissons Artisanales",
+                "children" => [
+                    "Jus de pomme",
+                    "Cidre",
+                    "Bière blonde",
+                    "Tisane"
+                ]
+            ],
+            [
+                "categorie" => "Produits Artisanaux / Non-Alimentaires",
+                "children" => [
+                    "Savon",
+                    "Baume",
+                    "Bougie",
+                    "Tissu brodé"
+                ]
+            ]
+        ];
+
+        foreach ($categoriesData as $categoryData) {
+            $parentCategory = new ProductCategory();
+            $parentCategory->setName($categoryData["categorie"]);
+            $parentCategory->setDescription($this->faker->text(100));
+            $manager->persist($parentCategory);
+            // $categories[] = $parentCategory;
+
+            // Créer les catégories enfants
+            foreach ($categoryData["children"] as $childName) {
+                $childCategory = new ProductCategory();
+                $childCategory->setName($childName);
+                $childCategory->setDescription($this->faker->text(50));
+                $childCategory->setCategoryParent($parentCategory);
+                $manager->persist($childCategory);
+                $categories[] = $childCategory;
+            }
         }
 
         $products = [];
-        for ($i = 0; $i <= 10; $i++) {
+        for ($i = 0; $i <= 30; $i++) {
             $product = new Product();
             $product->setName($this->faker->word);
             $product->setQuantity($this->faker->numberBetween(1, 50));
-            $product->setUnitPrice($this->faker->randomFloat(2, 3,100));
-            $product->setPrice($this->faker->randomFloat(2,3,100));
+            $product->setUnitPrice($this->faker->randomFloat(2, 3, 100));
+            $product->setPrice($this->faker->randomFloat(2, 3, 100));
             $randomCategory = $categories[array_rand($categories)];
             $product->addCategory($randomCategory);
             $product->setStatus("on");
@@ -62,7 +148,7 @@ class AppFixtures extends Fixture
             ->setRoles(['ROLE_ADMIN']);
         $manager->persist($user);
         $users[] = $user;
-        for($i=0; $i<=10; $i++) {
+        for ($i = 0; $i <= 10; $i++) {
             $user = new User();
             $password = $this->userPasswordHasher->hashPassword($user, $this->faker->password(2, 6));
             $user->setUuid($this->faker->uuid)

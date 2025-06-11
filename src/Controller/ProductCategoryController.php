@@ -25,6 +25,83 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 )]
 final class ProductCategoryController extends AbstractController
 {
+    #[Route('api/public/v1/product-category/{id}/children', name: 'api_get_category_children', methods: ['GET'])]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID of parent category',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns all child categories',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
+        )
+    )]
+    public function getChildren(ProductCategory $category, SerializerInterface $serializer): JsonResponse
+    {
+        $children = $category->getCategoryParent();
+        $jsonData = $serializer->serialize($children, 'json', ['groups' => ['category', 'category_details']]);
+        return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('api/v1/product-category/{id}/parent/{parentId}', name: 'api_set_category_parent', methods: ['PUT'])]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID of category',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Parameter(
+        name: 'parentId',
+        in: 'path',
+        description: 'ID of parent category',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Parent category set successfully'
+    )]
+    public function setParent(
+        ProductCategory $category,
+        ProductCategory $parent,
+        EntityManagerInterface $em,
+        SerializerInterface $serializer
+    ): JsonResponse
+    {
+        $category->setCategoryParent($parent);
+        $em->flush();
+        
+        $jsonData = $serializer->serialize($category, 'json', ['groups' => ['category', 'category_details']]);
+        return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('api/v1/product-category/{id}/parent', name: 'api_remove_category_parent', methods: ['DELETE'])]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID of category',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 204,
+        description: 'Parent category removed successfully'
+    )]
+    public function removeParent(ProductCategory $category, EntityManagerInterface $em): JsonResponse
+    {
+        $category->setCategoryParent(null);
+        $em->flush();
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
 
     #[Route('api/public/v1/product-categories', name: 'api_get_all_product_categories', methods: ['GET'])]
     #[OA\Response(
@@ -38,8 +115,8 @@ final class ProductCategoryController extends AbstractController
     #[OA\Tag(name: 'Product Categories')]
     public function getAll(ProductCategoryRepository $repository, SerializerInterface $serializer): JsonResponse
     {
-        $categories = $repository->findAll();
-        $jsonData = $serializer->serialize($categories, 'json',['groups' => ['category']]);
+        $categories = $repository->findBy(['categoryParent' => null], ['name' => 'ASC']);
+        $jsonData = $serializer->serialize($categories, 'json',['groups' => ['category',"children"]]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
