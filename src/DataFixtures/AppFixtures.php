@@ -1,6 +1,7 @@
 <?php
 namespace App\DataFixtures;
 
+use App\Entity\FarmType;
 use Faker\Factory;
 use App\Entity\Farm;
 use App\Entity\User;
@@ -51,16 +52,29 @@ class AppFixtures extends Fixture
             $products[] = $product;
         }
 
+        // farm types
+        $farmTypes = [];
+        for ($i = 0; $i <= 5; $i++) {
+            $farmType = new FarmType();
+            $farmType->setName($this->faker->word);
+            $farmType->setDescription($this->faker->text(20));
+            $manager->persist($farmType);
+            $farmTypes[] = $farmType;
+        }
+
         for ($i = 0; $i <= 10; $i++) {
             $farm = new Farm();
             $farm->setName($this->faker->company);
             $farm->setAddress($this->faker->address);
+            $farm->setZipCode($this->faker->postcode);
+            $farm->setCity($this->faker->city);
             $farm->setDescription($this->faker->text(20));
             $farm->setStatus("on");
             
             // Associer chaque ferme à un produit et vice versa
             $product = array_shift($products);
             $farm->addProduct($product);
+            $farm->addType($farmTypes[array_rand($farmTypes)]);
             
             $manager->persist($farm);
         }

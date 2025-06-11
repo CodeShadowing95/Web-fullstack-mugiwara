@@ -17,6 +17,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\FarmTypeRepository;
 
 final class FarmController extends AbstractController
 {
@@ -53,7 +54,7 @@ final class FarmController extends AbstractController
     #[OA\Response(
         response: 200,
         description: 'Returns a farm',
-        content: new OA\JsonContent(ref: new Model(type: Farm::class, groups: ['farm','stats']))
+        content: new OA\JsonContent(ref: new Model(type: Farm::class, groups: ['farm', 'stats', 'farm_products']))
     )]
     /**
      * Summary of get
@@ -63,7 +64,7 @@ final class FarmController extends AbstractController
      */
     public function get(Farm $farm, SerializerInterface $serializer): JsonResponse
     {
-        $jsonData = $serializer->serialize($farm, 'json', ['groups' => ['farm','stats']]);
+        $jsonData = $serializer->serialize($farm, 'json', ['groups' => ['farm', 'stats', 'farm_products']]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
@@ -89,8 +90,27 @@ final class FarmController extends AbstractController
         required: true,
         schema: new OA\Schema(ref: new Model(type: Farm::class)),
     )]
+    #[OA\Parameter(
+        name: 'zipCode',
+        in: 'body',
+        description: 'Zip code of the farm',
+        required: true,
+        schema: new OA\Schema(ref: new Model(type: Farm::class)),
+    )]
+    #[OA\Parameter(
+        name: 'city',
+        in: 'body',
+        description: 'City of the farm',
+        required: true,
+        schema: new OA\Schema(ref: new Model(type: Farm::class)),
+    )]
     #[OA\Property(
         property: 'products',
+        type: 'array',
+        items: new OA\Items(type: 'integer')
+    )]
+    #[OA\Property(
+        property: 'types',
         type: 'array',
         items: new OA\Items(type: 'integer')
     )]
@@ -104,21 +124,35 @@ final class FarmController extends AbstractController
      * @param \Symfony\Component\HttpFoundation\Request $request
      * @param \Symfony\Component\Routing\Generator\UrlGeneratorInterface $urlGenerator
      * @param \App\Repository\ProductRepository $productRepository
+     * @param \App\Repository\FarmTypeRepository $farmTypeRepository
      * @param \Symfony\Component\Serializer\SerializerInterface $serializer
      * @param \Doctrine\ORM\EntityManagerInterface $entityManager
      * @param \Symfony\Component\Validator\Validator\ValidatorInterface $validator
      * @return JsonResponse
      */
-    public function create(Request $request, UrlGeneratorInterface $urlGenerator, ProductRepository $productRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
+    public function create(Request $request, UrlGeneratorInterface $urlGenerator, ProductRepository $productRepository, FarmTypeRepository $farmTypeRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
     {
         $farm = $serializer->deserialize($request->getContent(), Farm::class, 'json');
-        $productsData = $request->toArray()['products'] ?? [];
+        $requestData = $request->toArray();
+        
+        // Handle products
+        $productsData = $requestData['products'] ?? [];
         foreach ($productsData as $productId) {
             $product = $productRepository->find($productId);
             if ($product) {
                 $farm->addProduct($product);
             }
         }
+        
+        // Handle farm types
+        $typesData = $requestData['types'] ?? [];
+        foreach ($typesData as $typeId) {
+            $type = $farmTypeRepository->find($typeId);
+            if ($type) {
+                $farm->addType($type);
+            }
+        }
+        
         $farm->setStatus('on');
         $errors = $validator->validate($farm);
         if (count($errors) > 0) {
@@ -137,25 +171,42 @@ final class FarmController extends AbstractController
      * @param \App\Entity\Farm $farm
      * @param \Symfony\Component\HttpFoundation\Request $request
      * @param \App\Repository\ProductRepository $productRepository
+     * @param \App\Repository\FarmTypeRepository $farmTypeRepository
      * @param \Symfony\Component\Serializer\SerializerInterface $serializer
      * @param \Doctrine\ORM\EntityManagerInterface $entityManager
      * @param \Symfony\Component\Validator\Validator\ValidatorInterface $validator
      * @return JsonResponse
      */
-    public function update(Farm $farm, Request $request, ProductRepository $productRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse 
+    public function update(Farm $farm, Request $request, ProductRepository $productRepository, FarmTypeRepository $farmTypeRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse 
     {
         $updatedFarm = $serializer->deserialize(
             $request->getContent(), Farm::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $farm]
         );
         
-        $productsData = $request->toArray()['products'] ?? [];
-        $farm->getProducts()->clear();
-        foreach ($productsData as $productId) {
-            $product = $productRepository->find($productId);
-            if ($product) {
-                $farm->addProduct($product);
+        $requestData = $request->toArray();
+        
+        // Handle products
+        if (isset($requestData['products'])) {
+            $farm->getProducts()->clear();
+            foreach ($requestData['products'] as $productId) {
+                $product = $productRepository->find($productId);
+                if ($product) {
+                    $farm->addProduct($product);
+                }
             }
         }
+        
+        // Handle farm types
+        if (isset($requestData['types'])) {
+            $farm->getTypes()->clear();
+            foreach ($requestData['types'] as $typeId) {
+                $type = $farmTypeRepository->find($typeId);
+                if ($type) {
+                    $farm->addType($type);
+                }
+            }
+        }
+        
         $errors = $validator->validate($updatedFarm);
         if (count($errors) > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
