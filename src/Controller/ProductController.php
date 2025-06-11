@@ -38,7 +38,7 @@ final class ProductController extends AbstractController
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
-    #[Route('api/v1/product/{id}', name: 'api_get_product', methods: ['GET'])]
+    #[Route('api/public/v1/product/{id}', name: 'api_get_product', methods: ['GET'])]
     #[OA\Tag(name: 'Products')]
     #[OA\Parameter(
         name: 'id',

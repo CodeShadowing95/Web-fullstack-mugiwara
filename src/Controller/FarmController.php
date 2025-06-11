@@ -23,7 +23,7 @@ use App\Repository\FarmTypeRepository;
 
 final class FarmController extends AbstractController
 {
-    #[Route('api/v1/farms', name: 'api_get_all_farm', methods: ['GET'])]
+    #[Route('api/public/v1/farms', name: 'api_get_all_farm', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Returns a list of all farms',
@@ -45,7 +45,7 @@ final class FarmController extends AbstractController
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
-    #[Route('api/v1/farm/{farm}', name: 'api_get_farm', methods: ['GET'])]
+    #[Route('api/public/v1/farm/{farm}', name: 'api_get_farm', methods: ['GET'])]
     #[OA\Parameter(
         name: 'farm',
         in: 'path',

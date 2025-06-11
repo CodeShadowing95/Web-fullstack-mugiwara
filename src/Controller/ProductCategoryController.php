@@ -17,15 +17,16 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+
+#[OA\Info(
+    version: "1.0.0",
+    description: "API for managing product categories",
+    title: "Product Categories API"
+)]
 final class ProductCategoryController extends AbstractController
 {
-    #[OA\Info(
-        version: "1.0.0",
-        description: "API for managing product categories",
-        title: "Product Categories API"
-    )]
-    #[Route('api/v1/product-categories', name: 'api_get_all_product_categories', methods: ['GET'])]
-    #[OA\Tag(name: 'Product Categories')]
+
+    #[Route('api/public/v1/product-categories', name: 'api_get_all_product_categories', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Returns all product categories',
@@ -35,14 +36,6 @@ final class ProductCategoryController extends AbstractController
         )
     )]
     #[OA\Tag(name: 'Product Categories')]
-    #[OA\Response(
-        response: 200,
-        description: 'Returns all product categories',
-        content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
-        )
-    )]
     public function getAll(ProductCategoryRepository $repository, SerializerInterface $serializer): JsonResponse
     {
         $categories = $repository->findAll();
@@ -50,7 +43,7 @@ final class ProductCategoryController extends AbstractController
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
-    #[Route('api/v1/product-category/{id}', name: 'api_get_product_category', methods: ['GET'])]
+    #[Route('api/public/v1/product-category/{id}', name: 'api_get_product_category', methods: ['GET'])]
     #[OA\Tag(name: 'Product Categories')]
     #[OA\Parameter(
         name: 'id',
