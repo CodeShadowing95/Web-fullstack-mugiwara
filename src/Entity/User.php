@@ -48,10 +48,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: FarmUser::class, mappedBy: 'user_id')]
     private Collection $farmUsers;
 
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Cart $cart = null;
+
+    /**
+     * @var Collection<int, Order>
+     */
+    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user')]
+    private Collection $orders;
+
     public function __construct()
     {
         // $this->farm = new ArrayCollection();
         $this->farmUsers = new ArrayCollection();
+        $this->orders = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -170,6 +180,53 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($farmUser->getUserId() === $this) {
                 $farmUser->setUserId(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getCart(): ?Cart
+    {
+        return $this->cart;
+    }
+
+    public function setCart(Cart $cart): static
+    {
+        // set the owning side of the relation if necessary
+        if ($cart->getUser() !== $this) {
+            $cart->setUser($this);
+        }
+
+        $this->cart = $cart;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Order>
+     */
+    public function getOrders(): Collection
+    {
+        return $this->orders;
+    }
+
+    public function addOrder(Order $order): static
+    {
+        if (!$this->orders->contains($order)) {
+            $this->orders->add($order);
+            $order->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrder(Order $order): static
+    {
+        if ($this->orders->removeElement($order)) {
+            // set the owning side to null (unless already changed)
+            if ($order->getUser() === $this) {
+                $order->setUser(null);
             }
         }
 

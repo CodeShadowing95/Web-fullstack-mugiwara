@@ -1,0 +1,18 @@
+meta {
+  name: Add Item to Cart
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/cart/items
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "productId": 34,
+    "quantity": 1
+  }
+}
