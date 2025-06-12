@@ -5,14 +5,26 @@ meta {
 }
 
 post {
-  url: https://localhost/api/v1/product-category
-  body: json
+  url: https://localhost/api/public/v1/product
+  body: multipartForm
   auth: inherit
 }
 
-body:json {
-  {
-  "name": "Bio",
-    "description": "Eos in et rem debitis error in voluptates. Quia possimus quos"
-  }
+body:form-urlencoded {
+  : 
+  : 
+}
+
+body:multipart-form {
+  images[]: @file(/Users/laria/Music/hp840 g4 i7.jpg|/Users/laria/Music/hp840 g5 i7.jpeg|/Users/laria/Music/Hp840 g6 i5.jpeg)
+  data: '''
+    {
+      "name": "Bio kskdkddk",
+      "description": "Eos in et rem debitis error in voluptates. Quia possimus quos",
+      "quantity": 22,
+      "unitPrice": 12,
+      "price": 12,
+      "status": "on"
+    }
+  '''
 }

@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\MediaRepository;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: MediaRepository::class)]
@@ -15,24 +16,31 @@ class Media
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['media'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['media'])]
     private ?string $realName = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['media'])]
     private ?string $realPath = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['media'])]
     private ?string $publicPath = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['media'])]
     private ?string $mime = null;
 
     #[ORM\Column(length: 25)]
+    #[Groups(['media'])]
     private ?string $status = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['media'])]
     private ?\DateTimeInterface $uploadedAt = null;
 
     #[Vich\UploadableField("media", fileNameProperty: 'realPath', mimeType: "mime")]
@@ -55,6 +63,7 @@ class Media
     {
         return $this->realName;
     }
+
 
     public function setRealName(string $realName): static
     {
@@ -170,4 +179,5 @@ class Media
 
         return $this;
     }
+
 }

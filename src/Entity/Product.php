@@ -45,7 +45,7 @@ class Product
     private ?Farm $farm = null;
 
     #[ORM\Column]
-    #[Groups(["farm_products", "category_details"])]
+    #[Groups(["farm_products","product", "category_details"])]
     private ?float $price = null;
 
     #[ORM\Column]
