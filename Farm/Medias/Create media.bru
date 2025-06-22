@@ -4,14 +4,14 @@ meta {
   seq: 1
 }
 
-delete {
-  url: https://localhost/api/v1/media/3
+post {
+  url: https://localhost/api/v1/media
   body: multipartForm
   auth: inherit
 }
 
 body:multipart-form {
-  file: @file(C:\Users\cocog\Downloads\Capture d’écran 2025-04-14 212638.png)
+  file: @file(/Users/laria/Music/Dell 5400 i 7.jpeg)
 }
 
 body:file {

@@ -33,6 +33,7 @@ class ProductCategory
     #[Groups(["category_details"])]
     private Collection $products;
 
+    #[Groups([ "parent"])]
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'parent')]
     private ?self $categoryParent = null;
 

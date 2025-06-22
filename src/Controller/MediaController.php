@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Media;
+use App\Utils\MediaUploader;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -37,20 +38,17 @@ final class MediaController extends AbstractController
     #[Route('/api/v1/media', name: 'api_create_media', methods: ['POST'])]
     public function create(
         Request $request,
-        EntityManagerInterface $entityManager,
         SerializerInterface $serializer,
-        UrlGeneratorInterface $urlGenerator
+        UrlGeneratorInterface $urlGenerator,
+        MediaUploader $mediaUploader
     ): JsonResponse {
-        $media = new Media();
         $file = $request->files->get('file');
-
-        $media->setFile($file)
-            ->setRealName($file->getClientOriginalName())
-            ->setPublicPath('media')
-            ->setStatus('on')
-            ->setUploadedAt(new \DateTime());
-        $entityManager->persist($media);
-        $entityManager->flush();
+        $media = $mediaUploader->upload(
+            $file,
+            'media',
+            $request->request->get('entityType'),
+            $request->request->get('entityId')
+        );
         $jsonFile = $serializer->serialize($media, "json");
         $location = $urlGenerator->generate('api_get_media', ["media" => $media->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         return new JsonResponse($jsonFile, Response::HTTP_CREATED, ["Location" => $location], true);
