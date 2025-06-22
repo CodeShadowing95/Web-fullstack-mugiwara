@@ -62,9 +62,16 @@ class Product
     #[Groups(["product_details","product"])]
     private Collection $category;
 
+    /**
+     * @var Collection<int, Tag>
+     */
+    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'products')]
+    private Collection $Tags;
+
     public function __construct()
     {
         $this->category = new ArrayCollection();
+        $this->Tags = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -164,6 +171,37 @@ class Product
     public function removeCategory(ProductCategory $category): static
     {
         $this->category->removeElement($category);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Tag>
+     */
+    public function getTags(): Collection
+    {
+        return $this->Tags;
+    }
+
+    public function setTags(Collection $tags): static
+    {
+        $this->Tags = $tags;
+
+        return $this;
+    }
+
+    public function addTag(Tag $tag): static
+    {
+        if (!$this->Tags->contains($tag)) {
+            $this->Tags->add($tag);
+        }
+
+        return $this;
+    }
+
+    public function removeTag(Tag $tag): static
+    {
+        $this->Tags->removeElement($tag);
 
         return $this;
     }

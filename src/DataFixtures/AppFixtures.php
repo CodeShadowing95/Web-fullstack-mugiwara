@@ -124,6 +124,19 @@ class AppFixtures extends Fixture
             }
         }
 
+        $tags = [];
+        $tagsData = [
+            "bio", "local", "fermier", "saison", "artisan", "éthique", "durable", "naturel", "fait maison"
+        ];
+
+        foreach ($tagsData as $tagName) {
+            $tag = new \App\Entity\Tag();
+            $tag->setName($tagName);
+            $tag->setSlug(strtolower(str_replace(' ', '-', $tagName)));
+            $manager->persist($tag);
+            $tags[] = $tag;
+        }
+
         $products = [];
         for ($i = 0; $i <= 30; $i++) {
             $product = new Product();
@@ -133,6 +146,7 @@ class AppFixtures extends Fixture
             $product->setPrice($this->faker->randomFloat(2, 3, 100));
             $randomCategory = $categories[array_rand($categories)];
             $product->addCategory($randomCategory);
+            $product->setTags($this->faker->randomElements($tags, rand(1, 3)));
             $product->setStatus("on");
             // Assigner une catégorie aléatoire au produit
             $manager->persist($product);

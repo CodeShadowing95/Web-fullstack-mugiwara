@@ -91,12 +91,20 @@ final class ProductController extends AbstractController
             return new JsonResponse($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
         }
 
+        if($request->has('image')) {
+            $image = $request->files->get('image');
+            if ($image) {
+                $product->setImageFile($image);
+            }
+        }
+
+        $product->setStatus('on');
         $em->persist($product);
         $em->flush();
 
         $jsonData = $serializer->serialize($product, 'json', ['groups' => ['product']]);
         $location = $urlGenerator->generate('api_get_product', ['id' => $product->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-        
+
         return new JsonResponse($jsonData, Response::HTTP_CREATED, ["Location" => $location], true);
     }
 
@@ -153,7 +161,7 @@ final class ProductController extends AbstractController
     {
         $em->remove($product);
         $em->flush();
-        
+
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }
