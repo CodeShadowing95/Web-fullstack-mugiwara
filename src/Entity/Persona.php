@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\PersonaRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: PersonaRepository::class)]
 class Persona
@@ -11,38 +13,51 @@ class Persona
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'persona', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
+    #[MaxDepth(1)]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user:read'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user:read'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user:read'])]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $address = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(['user:read'])]
     private ?int $zipCode = null;
 
     #[ORM\Column(length: 25, nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $phoneNumber = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
+    #[Groups(['user:read'])]
     private ?\DateTimeInterface $birthDate = null;
 
     #[ORM\Column(length: 10, nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $gender = null;
+
+    // Getters / Setters
 
     public function getId(): ?int
     {
@@ -57,7 +72,6 @@ class Persona
     public function setUser(User $user): static
     {
         $this->user = $user;
-
         return $this;
     }
 
@@ -69,7 +83,6 @@ class Persona
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
@@ -81,7 +94,6 @@ class Persona
     public function setFirstName(string $firstName): static
     {
         $this->firstName = $firstName;
-
         return $this;
     }
 
@@ -93,7 +105,6 @@ class Persona
     public function setLastName(string $lastName): static
     {
         $this->lastName = $lastName;
-
         return $this;
     }
 
@@ -105,7 +116,6 @@ class Persona
     public function setAddress(?string $address): static
     {
         $this->address = $address;
-
         return $this;
     }
 
@@ -117,7 +127,6 @@ class Persona
     public function setZipCode(?int $zipCode): static
     {
         $this->zipCode = $zipCode;
-
         return $this;
     }
 
@@ -129,7 +138,6 @@ class Persona
     public function setCity(?string $city): static
     {
         $this->city = $city;
-
         return $this;
     }
 
@@ -141,7 +149,6 @@ class Persona
     public function setPhoneNumber(?string $phoneNumber): static
     {
         $this->phoneNumber = $phoneNumber;
-
         return $this;
     }
 
@@ -153,7 +160,6 @@ class Persona
     public function setBirthDate(\DateTimeInterface $birthDate): static
     {
         $this->birthDate = $birthDate;
-
         return $this;
     }
 
@@ -165,7 +171,6 @@ class Persona
     public function setGender(?string $gender): static
     {
         $this->gender = $gender;
-
         return $this;
     }
 }
