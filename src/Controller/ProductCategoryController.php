@@ -44,7 +44,7 @@ final class ProductCategoryController extends AbstractController
     )]
     public function getChildren(ProductCategory $category, SerializerInterface $serializer): JsonResponse
     {
-        $children = $category->getCategoryParent();
+        $children = $category->getChildren();
         $jsonData = $serializer->serialize($children, 'json', ['groups' => ['category', 'category_details']]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
@@ -78,7 +78,7 @@ final class ProductCategoryController extends AbstractController
     {
         $category->setCategoryParent($parent);
         $em->flush();
-        
+
         $jsonData = $serializer->serialize($category, 'json', ['groups' => ['category', 'category_details']]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
@@ -166,15 +166,15 @@ final class ProductCategoryController extends AbstractController
         description: 'Invalid input'
     )]
     public function create(
-        Request $request, 
-        SerializerInterface $serializer, 
+        Request $request,
+        SerializerInterface $serializer,
         EntityManagerInterface $em,
         UrlGeneratorInterface $urlGenerator,
         ValidatorInterface $validator
     ): JsonResponse
     {
         $category = $serializer->deserialize($request->getContent(), ProductCategory::class, 'json');
-        
+
         $errors = $validator->validate($category);
         if (count($errors) > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
@@ -185,7 +185,7 @@ final class ProductCategoryController extends AbstractController
 
         $jsonData = $serializer->serialize($category, 'json');
         $location = $urlGenerator->generate('api_get_product_category', ['id' => $category->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-        
+
         return new JsonResponse($jsonData, Response::HTTP_CREATED, ["Location" => $location], true);
     }
 
@@ -265,7 +265,31 @@ final class ProductCategoryController extends AbstractController
     {
         $em->remove($category);
         $em->flush();
-        
+
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    #[Route('api/public/v1/product-category/{id}/products', name: 'api_get_products_by_category', methods: ['GET'])]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de la catégorie',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne les produits de la catégorie',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: \App\Entity\Product::class, groups: ['product']))
+        )
+    )]
+    public function getProductsByCategory(ProductCategory $category, SerializerInterface $serializer): JsonResponse
+    {
+        $products = $category->getProducts();
+        $jsonData = $serializer->serialize($products, 'json', ['groups' => ['product']]);
+        return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 }

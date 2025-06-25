@@ -40,15 +40,15 @@ class ProductCategory
     /**
      * @var Collection<int, self>
      */
-    
+
     #[Groups(['children'])]
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'categoryParent')]
-    private Collection $parent;
+    private Collection $children;
 
     public function __construct()
     {
         $this->products = new ArrayCollection();
-        $this->parent = new ArrayCollection();
+        $this->children = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -122,30 +122,27 @@ class ProductCategory
     /**
      * @return Collection<int, self>
      */
-    public function getParent(): Collection
+    public function getChildren(): Collection
     {
-        return $this->parent;
+        return $this->children;
     }
 
-    public function addParent(self $parent): static
+    public function addChild(self $child): static
     {
-        if (!$this->parent->contains($parent)) {
-            $this->parent->add($parent);
-            $parent->setCategoryParent($this);
+        if (!$this->children->contains($child)) {
+            $this->children->add($child);
+            $child->setCategoryParent($this);
         }
-
         return $this;
     }
 
-    public function removeParent(self $parent): static
+    public function removeChild(self $child): static
     {
-        if ($this->parent->removeElement($parent)) {
-            // set the owning side to null (unless already changed)
-            if ($parent->getCategoryParent() === $this) {
-                $parent->setCategoryParent(null);
+        if ($this->children->removeElement($child)) {
+            if ($child->getCategoryParent() === $this) {
+                $child->setCategoryParent(null);
             }
         }
-
         return $this;
     }
 }
