@@ -8,6 +8,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -17,49 +19,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['user:read'])]
     private ?string $uuid = null;
 
-    /**
-     * @var list<string> The user roles
-     */
     #[ORM\Column]
+    #[Groups(['user:read'])]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
     #[ORM\Column]
-    private ?string $password = null;
+    private ?string $password = null; // ⚠️ Ne pas exposer dans les groupes publics
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    #[Groups(['user:read'])]
+    #[MaxDepth(1)]
     private ?Persona $persona = null;
-    /**
-     * @var Collection<int, Farm>
-     */
-    // #[ORM\ManyToMany(targetEntity: Farm::class, inversedBy: 'users')]
-    // private Collection $farm;
 
-    /**
-     * @var Collection<int, FarmUser>
-     */
     #[ORM\OneToMany(targetEntity: FarmUser::class, mappedBy: 'user_id')]
     private Collection $farmUsers;
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    #[Groups(['user:read'])]
+    #[MaxDepth(1)]
     private ?Cart $cart = null;
 
-    /**
-     * @var Collection<int, Order>
-     */
     #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user')]
+    #[Groups(['user:read'])]
     private Collection $orders;
 
     public function __construct()
     {
-        // $this->farm = new ArrayCollection();
         $this->farmUsers = new ArrayCollection();
         $this->orders = new ArrayCollection();
     }
@@ -77,47 +69,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUuid(string $uuid): static
     {
         $this->uuid = $uuid;
-
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
         return $this->persona?->getEmail() ?? '';
     }
 
-    /**
-     * @see UserInterface
-     *
-     * @return list<string>
-     */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
-
         return array_unique($roles);
     }
 
-    /**
-     * @param list<string> $roles
-     */
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -126,17 +98,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        // Si tu stockes un plainPassword temporaire, purge ici
     }
 
     public function getPersona(): ?Persona
@@ -146,19 +113,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setPersona(Persona $persona): static
     {
-        // set the owning side of the relation if necessary
         if ($persona->getUser() !== $this) {
             $persona->setUser($this);
         }
-
         $this->persona = $persona;
         return $this;
     }
 
-
-    /**
-     * @return Collection<int, FarmUser>
-     */
     public function getFarmUsers(): Collection
     {
         return $this->farmUsers;
@@ -170,19 +131,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->farmUsers->add($farmUser);
             $farmUser->setUserId($this);
         }
-
         return $this;
     }
 
     public function removeFarmUser(FarmUser $farmUser): static
     {
         if ($this->farmUsers->removeElement($farmUser)) {
-            // set the owning side to null (unless already changed)
             if ($farmUser->getUserId() === $this) {
                 $farmUser->setUserId(null);
             }
         }
-
         return $this;
     }
 
@@ -193,19 +151,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setCart(Cart $cart): static
     {
-        // set the owning side of the relation if necessary
         if ($cart->getUser() !== $this) {
             $cart->setUser($this);
         }
-
         $this->cart = $cart;
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Order>
-     */
     public function getOrders(): Collection
     {
         return $this->orders;
@@ -217,19 +169,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->orders->add($order);
             $order->setUser($this);
         }
-
         return $this;
     }
 
     public function removeOrder(Order $order): static
     {
         if ($this->orders->removeElement($order)) {
-            // set the owning side to null (unless already changed)
             if ($order->getUser() === $this) {
                 $order->setUser(null);
             }
         }
-
         return $this;
     }
 }

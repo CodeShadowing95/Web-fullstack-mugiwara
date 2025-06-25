@@ -1,0 +1,19 @@
+meta {
+  name: Delete media
+  type: http
+  seq: 3
+}
+
+delete {
+  url: https://localhost/api/v1/media/3
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file(C:\Users\cocog\Downloads\Capture d’écran 2025-04-14 212638.png)
+}
+
+body:file {
+  file: @file(C:\Users\cocog\Downloads\Capture d’écran 2025-04-14 212638.png) @contentType(image/png)
+}
