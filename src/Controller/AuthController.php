@@ -62,10 +62,11 @@ class AuthController extends AbstractController
         $user = $security->getUser();
 
         if (!$user) {
-            return new JsonResponse(['error' => 'Non authentifié'], JsonResponse::HTTP_UNAUTHORIZED);
+            return new JsonResponse(['error' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $data = $serializer->normalize($user, null, ['groups' => ['user:read']]);
+        $data = $serializer->serialize($user, 'json', ['groups' => ['user:read']]);
+        $data = json_decode($data, true);
 
         return new JsonResponse($data);
 
