@@ -111,7 +111,7 @@ class AppFixtures extends Fixture
             $parentCategory->setName($categoryData["categorie"]);
             $parentCategory->setDescription($this->faker->text(100));
             $manager->persist($parentCategory);
-            // $categories[] = $parentCategory;
+            $categories[] = $parentCategory;
 
             // Créer les catégories enfants
             foreach ($categoryData["children"] as $childName) {
@@ -126,17 +126,109 @@ class AppFixtures extends Fixture
 
         $tags = [];
         $tagsData = [
-            "bio", "local", "fermier", "saison", "artisan", "éthique", "durable", "naturel", "fait maison"
+            [
+                'name' => 'bio',
+                'bgColor' => '#2F4F4F', // Dark Slate Gray
+                'textColor' => '#E8F5E9'
+            ],
+            [
+                'name' => 'local',
+                'bgColor' => '#1B4F72', // Dark Blue
+                'textColor' => '#EBF5FB'
+            ],
+            [
+                'name' => 'fermier',
+                'bgColor' => '#1B5E20', // Dark Green
+                'textColor' => '#E8F5E9'
+            ],
+            [
+                'name' => 'saison',
+                'bgColor' => '#4A235A', // Dark Purple
+                'textColor' => '#F4ECF7'
+            ],
+            [
+                'name' => 'artisan',
+                'bgColor' => '#641E16', // Dark Red
+                'textColor' => '#FDEDEC'
+            ],
+            [
+                'name' => 'éthique',
+                'bgColor' => '#154360', // Navy Blue
+                'textColor' => '#EBF5FB'
+            ],
+            [
+                'name' => 'durable',
+                'bgColor' => '#186A3B', // Forest Green
+                'textColor' => '#E8F5E9'
+            ],
+            [
+                'name' => 'naturel',
+                'bgColor' => '#784212', // Dark Brown
+                'textColor' => '#FDEBD0'
+            ],
+            [
+                'name' => 'fait maison',
+                'bgColor' => '#17202A', // Dark Gray
+                'textColor' => '#F8F9F9'
+            ]
         ];
 
-        foreach ($tagsData as $tagName) {
+        foreach ($tagsData as $tagData) {
             $tag = new \App\Entity\Tag();
-            $tag->setName($tagName);
-            $tag->setSlug(strtolower(str_replace(' ', '-', $tagName)));
+            $tag->setName($tagData["name"]);
+            $tag->setSlug(strtolower(str_replace(' ', '-', $tagData["name"])));
+            $tag->setBgColor($tagData["bgColor"]);
+            $tag->setTextColor($tagData["textColor"]);
             $manager->persist($tag);
             $tags[] = $tag;
         }
 
+        // Créer d'abord les types de fermes
+        $farmTypes = [];
+        for ($i = 0; $i <= 5; $i++) {
+            $farmType = new FarmType();
+            $farmType->setName($this->faker->word);
+            $farmType->setDescription($this->faker->text(20));
+            $manager->persist($farmType);
+            $farmTypes[] = $farmType;
+        }
+
+        // Créer ensuite les fermes
+        $farms = [];
+        for ($i = 0; $i <= 10; $i++) {
+            $farm = new Farm();
+            $farm->setName($this->faker->company);
+            $farm->setDescription($this->faker->text(100));
+            $farm->setAddress($this->faker->address);
+            $farm->setCity($this->faker->city);
+            $farm->setZipCode($this->faker->postcode);
+            $farm->setRegion($this->faker->region);
+            $farm->setCoordinates([
+                'lat' => $this->faker->latitude,
+                'lng' => $this->faker->longitude
+            ]);
+            $farm->setPhone($this->faker->phoneNumber);
+            $farm->setEmail($this->faker->companyEmail);
+            $farm->setWebsite($this->faker->url);
+            $farm->setFarmSize($this->faker->numberBetween(1, 1000) . ' hectares');
+            $farm->setMainProducts($this->faker->words(3));
+            $farm->setSeasonality($this->faker->randomElement(['Printemps', 'Été', 'Automne', 'Hiver', 'Toute l\'année']));
+            $farm->setDeliveryZones($this->faker->words(2));
+            $farm->setDeliveryMethods(['Livraison à domicile', 'Click & Collect', 'Sur place']);
+            $farm->setMinimumOrder($this->faker->numberBetween(10, 50) . '€');
+            $farm->setProfileImage('https://picsum.photos/200');
+            $farm->setGalleryImages([
+                'https://picsum.photos/800/600',
+                'https://picsum.photos/800/600',
+                'https://picsum.photos/800/600'
+            ]);
+            $farm->setStatus("on");
+            $farm->addType($farmTypes[array_rand($farmTypes)]);
+            $manager->persist($farm);
+            $farms[] = $farm;
+        }
+
+        // Ensuite créer les produits et les assigner aux fermes
         $products = [];
         for ($i = 0; $i <= 30; $i++) {
             $product = new Product();
@@ -146,9 +238,16 @@ class AppFixtures extends Fixture
             $product->setPrice($this->faker->randomFloat(2, 3, 100));
             $randomCategory = $categories[array_rand($categories)];
             $product->addCategory($randomCategory);
-            $product->setTags($this->faker->randomElements($tags, rand(1, 3)));
+            foreach ($this->faker->randomElements($tags, rand(1, 3)) as $tag) {
+                $product->addTag($tag);
+            }
             $product->setStatus("on");
-            // Assigner une catégorie aléatoire au produit
+            
+            // Assigner le produit à une ferme aléatoire
+            $randomFarm = $farms[array_rand($farms)];
+            $product->setFarm($randomFarm);
+            // $randomFarm->addProduct($product);
+            
             $manager->persist($product);
             $products[] = $product;
         }
@@ -174,34 +273,16 @@ class AppFixtures extends Fixture
             $manager->persist($user);
         }
 
-        // farm types
-        $farmTypes = [];
-        for ($i = 0; $i <= 5; $i++) {
-            $farmType = new FarmType();
-            $farmType->setName($this->faker->word);
-            $farmType->setDescription($this->faker->text(20));
-            $manager->persist($farmType);
-            $farmTypes[] = $farmType;
-        }
 
-        for ($i = 0; $i <= 10; $i++) {
-            $farm = new Farm();
-            $farm->setName($this->faker->company);
-            $farm->setAddress($this->faker->address);
-            $farm->setZipCode($this->faker->postcode);
-            $farm->setCity($this->faker->city);
-            $farm->setDescription($this->faker->text(20));
-            $farm->setStatus("on");
-
-            // Associer chaque ferme à un produit et vice versa
-            $product = array_shift($products);
-            $farm->addProduct($product);
+        $farmIndex = 0;
+        foreach ($farms as $farm) {
             $farm->addType($farmTypes[array_rand($farmTypes)]);
             $farmUser = new FarmUser();
-            $farmUser->setUser($usersForFarm[$i]);
+            $farmUser->setUser($usersForFarm[$farmIndex]);
             $farmUser->setFarm($farm);
             $farmUser->setRole($this->faker->randomElement(['owner', 'manager', 'employee']));
             $manager->persist($farmUser);
+            $farmIndex++;
 
             $manager->persist($farm);
         }

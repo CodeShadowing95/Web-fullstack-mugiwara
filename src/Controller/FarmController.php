@@ -71,40 +71,35 @@ final class FarmController extends AbstractController
     }
 
     #[Route('api/v1/farm', name: 'api_create_farm', methods: ['POST'])]
-    #[OA\Parameter(
-        name: 'name',
-        in: 'body',
-        description: 'Name of the farm',
+    #[OA\RequestBody(
+        description: 'Farm data',
         required: true,
-        schema: new OA\Schema(ref: new Model(type: Farm::class)),
-    )]
-    #[OA\Parameter(
-        name: 'address',
-        in: 'body',
-        description: 'Address of the farm',
-        required: true,
-        schema: new OA\Schema(ref: new Model(type: Farm::class)),
-    )]
-    #[OA\Parameter(
-        name: 'description',
-        in: 'body',
-        description: 'Description of the farm',
-        required: true,
-        schema: new OA\Schema(ref: new Model(type: Farm::class)),
-    )]
-    #[OA\Parameter(
-        name: 'zipCode',
-        in: 'body',
-        description: 'Zip code of the farm',
-        required: true,
-        schema: new OA\Schema(ref: new Model(type: Farm::class)),
-    )]
-    #[OA\Parameter(
-        name: 'city',
-        in: 'body',
-        description: 'City of the farm',
-        required: true,
-        schema: new OA\Schema(ref: new Model(type: Farm::class)),
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'name', type: 'string', description: 'Name of the farm', required: ['true']),
+                new OA\Property(property: 'description', type: 'string', description: 'Description of the farm'),
+                new OA\Property(property: 'address', type: 'string', description: 'Address of the farm', required: ['true']),
+                new OA\Property(property: 'city', type: 'string', description: 'City of the farm', required: ['true']),
+                new OA\Property(property: 'zipCode', type: 'string', description: 'Zip code of the farm', required: ['true']),
+                new OA\Property(property: 'region', type: 'string', description: 'Region of the farm'),
+                new OA\Property(property: 'coordinates', type: 'object', properties: [
+                    new OA\Property(property: 'lat', type: 'string'),
+                    new OA\Property(property: 'lng', type: 'string')
+                ]),
+                new OA\Property(property: 'phone', type: 'string', description: 'Phone number'),
+                new OA\Property(property: 'email', type: 'string', description: 'Email address'),
+                new OA\Property(property: 'website', type: 'string', description: 'Website URL'),
+                new OA\Property(property: 'farmSize', type: 'string', description: 'Size of the farm'),
+                new OA\Property(property: 'mainProducts', type: 'array', items: new OA\Items(type: 'string')),
+                new OA\Property(property: 'seasonality', type: 'string', description: 'Seasonality information'),
+                new OA\Property(property: 'deliveryZones', type: 'array', items: new OA\Items(type: 'string')),
+                new OA\Property(property: 'deliveryMethods', type: 'array', items: new OA\Items(type: 'string')),
+                new OA\Property(property: 'minimumOrder', type: 'string', description: 'Minimum order requirement'),
+                new OA\Property(property: 'profileImage', type: 'string', description: 'Profile image URL'),
+                new OA\Property(property: 'galleryImages', type: 'array', items: new OA\Items(type: 'string')),
+                new OA\Property(property: 'types', type: 'array', items: new OA\Items(type: 'integer'))
+            ]
+        )
     )]
     #[OA\Response(
         response: 201,
@@ -135,14 +130,7 @@ final class FarmController extends AbstractController
             }
         }
 
-        // Handle products
-        $productsData = $requestData['products'] ?? [];
-        foreach ($productsData as $productId) {
-            $product = $productRepository->find($productId);
-            if ($product) {
-                $farm->addProduct($product);
-            }
-        }
+        // Les produits seront ajoutés ultérieurement
 
         // Handle farm types
         $farm->getTypes()->clear();
@@ -199,15 +187,15 @@ final class FarmController extends AbstractController
         $requestData = $request->toArray();
 
         // Handle products
-        if (isset($requestData['products'])) {
-            $farm->getProducts()->clear();
-            foreach ($requestData['products'] as $productId) {
-                $product = $productRepository->find($productId);
-                if ($product) {
-                    $farm->addProduct($product);
-                }
-            }
-        }
+        // if (isset($requestData['products'])) {
+        //     $farm->getProducts()->clear();
+        //     foreach ($requestData['products'] as $productId) {
+        //         $product = $productRepository->find($productId);
+        //         if ($product) {
+        //             $farm->addProduct($product);
+        //         }
+        //     }
+        // }
 
         // Handle farm types
         if (isset($requestData['types'])) {

@@ -12,12 +12,32 @@ post {
 
 body:json {
   {
-     "name": "La ferme de Ynov",
-     "address": "1 rue des fleurs, Lyon Perrache",
-     "description": "une ferme qui vend des oeufs et des poules",
-     "zipCode": "69002",
-     "city": "Lyon",
-     "products": [],
-     "types": [37]
+    "name": "Ferme des Collines",
+    "description": "Production locale de fruits et légumes.",
+    "address": "123 route du terroir",
+    "city": "Lyon",
+    "zipCode": "69000",
+    "region": "Auvergne-Rhône-Alpes",
+    "coordinates": {
+      "lat": "45.7500",
+      "lng": "4.8500"
+    },
+    "phone": "+33 6 12 34 56 78",
+    "email": "contact@ferme-collines.fr",
+    "website": "https://ferme-collines.fr",
+    "farmSize": "3 hectares",
+    "mainProducts": ["Pommes", "Carottes"],
+    "seasonality": "Printemps-été",
+    "deliveryZones": ["Lyon", "Villeurbanne"],
+    "deliveryMethods": ["Click & collect", "Livraison à domicile"],
+    "minimumOrder": "15€",
+    "profileImage": "https://example.com/profil.jpg",
+    "galleryImages": [
+      "https://example.com/image1.jpg",
+      "https://example.com/image2.jpg"
+    ],
+    "types": [1, 2],
+    "products": [101, 102]
   }
+  
 }

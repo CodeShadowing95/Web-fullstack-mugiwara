@@ -16,6 +16,58 @@ class Farm
 {
     use StatisticsPropertiesTraits;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $region = null;
+
+    #[ORM\Column(type: "json", nullable: true)]
+    #[Groups(["farm"])]
+    private array $coordinates = [];
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $phone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $email = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $website = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $farmSize = null;
+
+    #[ORM\Column(type: "json", nullable: true)]
+    #[Groups(["farm"])]
+    private array $mainProducts = [];
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $seasonality = null;
+
+    #[ORM\Column(type: "json", nullable: true)]
+    #[Groups(["farm"])]
+    private array $deliveryZones = [];
+
+    #[ORM\Column(type: "json", nullable: true)]
+    #[Groups(["farm"])]
+    private array $deliveryMethods = [];
+
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $minimumOrder = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $profileImage = null;
+
+    #[ORM\Column(type: "json", nullable: true)]
+    #[Groups(["farm"])]
+    private array $galleryImages = [];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -48,12 +100,6 @@ class Farm
     #[Groups(["farm"])]
     private ?string $description = null;
 
-    /**
-     * @var Collection<int, Product>
-     */
-    #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'farm')]
-    #[Groups(["farm_products"])]
-    private Collection $products;
 
     /**
      * @var Collection<int, User>
@@ -90,7 +136,6 @@ class Farm
 
     public function __construct()
     {
-        $this->products = new ArrayCollection();
         // $this->role = new ArrayCollection();
         $this->farmUsers = new ArrayCollection();
         $this->types = new ArrayCollection();
@@ -138,33 +183,147 @@ class Farm
         return $this;
     }
 
-    /**
-     * @return Collection<int, Product>
-     */
-    public function getProducts(): Collection
+
+    public function getRegion(): ?string
     {
-        return $this->products;
+        return $this->region;
     }
 
-    public function addProduct(Product $product): static
+    public function setRegion(?string $region): static
     {
-        if (!$this->products->contains($product)) {
-            $this->products->add($product);
-            $product->setFarm($this);
-        }
-
+        $this->region = $region;
         return $this;
     }
 
-    public function removeProduct(Product $product): static
+    public function getCoordinates(): array
     {
-        if ($this->products->removeElement($product)) {
-            // set the owning side to null (unless already changed)
-            if ($product->getFarm() === $this) {
-                $product->setFarm(null);
-            }
-        }
+        return $this->coordinates;
+    }
 
+    public function setCoordinates(array $coordinates): static
+    {
+        $this->coordinates = $coordinates;
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): static
+    {
+        $this->phone = $phone;
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): static
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    public function getWebsite(): ?string
+    {
+        return $this->website;
+    }
+
+    public function setWebsite(?string $website): static
+    {
+        $this->website = $website;
+        return $this;
+    }
+
+    public function getFarmSize(): ?string
+    {
+        return $this->farmSize;
+    }
+
+    public function setFarmSize(?string $farmSize): static
+    {
+        $this->farmSize = $farmSize;
+        return $this;
+    }
+
+    public function getMainProducts(): array
+    {
+        return $this->mainProducts;
+    }
+
+    public function setMainProducts(array $mainProducts): static
+    {
+        $this->mainProducts = $mainProducts;
+        return $this;
+    }
+
+    public function getSeasonality(): ?string
+    {
+        return $this->seasonality;
+    }
+
+    public function setSeasonality(?string $seasonality): static
+    {
+        $this->seasonality = $seasonality;
+        return $this;
+    }
+
+    public function getDeliveryZones(): array
+    {
+        return $this->deliveryZones;
+    }
+
+    public function setDeliveryZones(array $deliveryZones): static
+    {
+        $this->deliveryZones = $deliveryZones;
+        return $this;
+    }
+
+    public function getDeliveryMethods(): array
+    {
+        return $this->deliveryMethods;
+    }
+
+    public function setDeliveryMethods(array $deliveryMethods): static
+    {
+        $this->deliveryMethods = $deliveryMethods;
+        return $this;
+    }
+
+    public function getMinimumOrder(): ?string
+    {
+        return $this->minimumOrder;
+    }
+
+    public function setMinimumOrder(?string $minimumOrder): static
+    {
+        $this->minimumOrder = $minimumOrder;
+        return $this;
+    }
+
+    public function getProfileImage(): ?string
+    {
+        return $this->profileImage;
+    }
+
+    public function setProfileImage(?string $profileImage): static
+    {
+        $this->profileImage = $profileImage;
+        return $this;
+    }
+
+    public function getGalleryImages(): array
+    {
+        return $this->galleryImages;
+    }
+
+    public function setGalleryImages(array $galleryImages): static
+    {
+        $this->galleryImages = $galleryImages;
         return $this;
     }
 
