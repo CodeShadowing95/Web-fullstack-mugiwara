@@ -133,6 +133,8 @@ class AppFixtures extends Fixture
             $tag = new \App\Entity\Tag();
             $tag->setName($tagName);
             $tag->setSlug(strtolower(str_replace(' ', '-', $tagName)));
+            $tag->setBgColor($this->faker->hexColor);
+            $tag->setTextColor($this->faker->hexColor);
             $manager->persist($tag);
             $tags[] = $tag;
         }
@@ -146,7 +148,9 @@ class AppFixtures extends Fixture
             $product->setPrice($this->faker->randomFloat(2, 3, 100));
             $randomCategory = $categories[array_rand($categories)];
             $product->addCategory($randomCategory);
-            $product->setTags($this->faker->randomElements($tags, rand(1, 3)));
+            foreach ($this->faker->randomElements($tags, rand(1, 3)) as $tag) {
+                $product->addTag($tag);
+            }
             $product->setStatus("on");
             // Assigner une catégorie aléatoire au produit
             $manager->persist($product);
