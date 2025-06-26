@@ -13,11 +13,12 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Serializer\SerializerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 class AuthController extends AbstractController
 {
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
-    public function register(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    public function register(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $jwtManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         if (!isset($data['email'], $data['password'], $data['firstName'], $data['lastName'])) {
@@ -52,11 +53,17 @@ class AuthController extends AbstractController
         $em->persist($persona);
         $em->flush();
 
-        return $this->json(['message' => 'Utilisateur créé avec succès'], Response::HTTP_CREATED);
+        // Générer le token JWT pour l'utilisateur nouvellement inscrit
+        $token = $jwtManager->create($user);
+
+        return $this->json([
+            'token' => $token,
+            'message' => 'Utilisateur créé et connecté avec succès'
+        ], Response::HTTP_CREATED);
     }
 
     #[Route('/api/current-user', name: 'api_current_user', methods: ['GET'])]
-    public function getCurrentUser(Security $security, SerializerInterface $serializer): JsonResponse
+    public function getCurrentUser(Security $security): JsonResponse
     {
         /** @var User|null $user */
         $user = $security->getUser();
@@ -65,11 +72,16 @@ class AuthController extends AbstractController
             return new JsonResponse(['error' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $data = $serializer->serialize($user, 'json', ['groups' => ['user:read']]);
-        $data = json_decode($data, true);
+        $data = [
+            'id' => $user->getId(),
+            'uuid' => $user->getUuid(),
+            'roles' => $user->getRoles(),
+            'persona' => $user->getPersona() ? $user->getPersona()->toArray() : null,
+            'cart' => $user->getCart(),
+            'orders' => $user->getOrders(),
+        ];
 
         return new JsonResponse($data);
-
     }
 
     #[Route('/api/become-farmer', name: 'api_become_farmer', methods: ['POST'])]
@@ -83,6 +95,6 @@ class AuthController extends AbstractController
         }
         $user->setRoles(['ROLE_FARMER']);
         $em->flush();
-        return $this->json(['message' => 'Role modifié avec succès'], Response::HTTP_CREATED);
+        return $this->json($user, Response::HTTP_OK, [], ['groups' => 'user:read']);
     }
 }

@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Persona
 {
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,55 +22,55 @@ class Persona
     private ?User $user = null;
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Column(length: 255)]
     private ?string $email = null;
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Column(length: 255)]
     private ?string $firstName = null;
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $address = null;
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $zipCode = null;
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Column(length: 25, nullable: true)]
     private ?string $city = null;
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $phoneNumber = null;
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Column(type: 'date', nullable: true)]
     private ?\DateTimeInterface $birthDate = null;
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $gender = null;
@@ -93,7 +93,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function getEmail(): ?string
     {
@@ -101,7 +101,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function setEmail(string $email): static
     {
@@ -111,7 +111,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function getFirstName(): ?string
     {
@@ -119,7 +119,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function setFirstName(string $firstName): static
     {
@@ -129,7 +129,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function getLastName(): ?string
     {
@@ -137,7 +137,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function setLastName(string $lastName): static
     {
@@ -147,7 +147,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function getAddress(): ?string
     {
@@ -155,7 +155,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function setAddress(?string $address): static
     {
@@ -165,7 +165,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function getZipCode(): ?int
     {
@@ -173,7 +173,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function setZipCode(?int $zipCode): static
     {
@@ -183,7 +183,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function getCity(): ?string
     {
@@ -191,7 +191,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function setCity(?string $city): static
     {
@@ -201,7 +201,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function getPhoneNumber(): ?string
     {
@@ -209,7 +209,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function setPhoneNumber(?string $phoneNumber): static
     {
@@ -219,7 +219,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function getBirthDate(): ?\DateTimeInterface
     {
@@ -227,7 +227,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function setBirthDate(\DateTimeInterface $birthDate): static
     {
@@ -237,7 +237,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function getGender(): ?string
     {
@@ -245,7 +245,7 @@ class Persona
     }
 
     /**
-     * @Groups({"persona"})
+     * @Groups({"persona", "user:read"})
      */
     public function setGender(?string $gender): static
     {
