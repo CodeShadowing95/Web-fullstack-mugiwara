@@ -35,7 +35,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     #[Groups(['user:read'])]
-    #[MaxDepth(1)]
+    #[MaxDepth(2)]
     private ?Persona $persona = null;
 
     #[ORM\OneToMany(targetEntity: FarmUser::class, mappedBy: 'user_id')]

@@ -72,16 +72,7 @@ class AuthController extends AbstractController
             return new JsonResponse(['error' => 'Non authentifié'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $data = [
-            'id' => $user->getId(),
-            'uuid' => $user->getUuid(),
-            'roles' => $user->getRoles(),
-            'persona' => $user->getPersona() ? $user->getPersona()->toArray() : null,
-            'cart' => $user->getCart(),
-            'orders' => $user->getOrders(),
-        ];
-
-        return new JsonResponse($data);
+        return $this->json($user, Response::HTTP_OK, [], ['groups' => 'user:read']);
     }
 
     #[Route('/api/become-farmer', name: 'api_become_farmer', methods: ['POST'])]
