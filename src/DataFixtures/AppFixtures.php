@@ -236,18 +236,19 @@ class AppFixtures extends Fixture
             $product->setQuantity($this->faker->numberBetween(1, 50));
             $product->setUnitPrice($this->faker->randomFloat(2, 3, 100));
             $product->setPrice($this->faker->randomFloat(2, 3, 100));
+            $product->setFeatured($this->faker->boolean);
             $randomCategory = $categories[array_rand($categories)];
             $product->addCategory($randomCategory);
             foreach ($this->faker->randomElements($tags, rand(1, 3)) as $tag) {
                 $product->addTag($tag);
             }
             $product->setStatus("on");
-            
+
             // Assigner le produit à une ferme aléatoire
             $randomFarm = $farms[array_rand($farms)];
             $product->setFarm($randomFarm);
             // $randomFarm->addProduct($product);
-            
+
             $manager->persist($product);
             $products[] = $product;
         }

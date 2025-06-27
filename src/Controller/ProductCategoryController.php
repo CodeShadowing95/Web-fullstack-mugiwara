@@ -292,4 +292,28 @@ final class ProductCategoryController extends AbstractController
         $jsonData = $serializer->serialize($products, 'json', ['groups' => ['product']]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
+
+    #[Route('api/public/v1/product-category/{id}/parents', name: 'api_get_category_parents', methods: ['GET'])]
+    #[OA\Tag(name: 'Product Categories')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID of parent category',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Returns all parent categories',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
+        )
+    )]
+    public function getParents(ProductCategory $category, SerializerInterface $serializer): JsonResponse
+    {
+        $parents = $category->getParents();
+        $jsonData = $serializer->serialize($parents, 'json', ['groups' => ['category']]);
+        return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
+    }
 }
