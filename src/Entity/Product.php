@@ -41,7 +41,7 @@ class Product
     private ?int $quantity = null;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
-    #[Groups(["product_details",])]
+    #[Groups(["product_details", "farm"])]
     private ?Farm $farm = null;
 
     #[ORM\Column]
@@ -49,10 +49,11 @@ class Product
     private ?float $price = null;
 
     #[ORM\Column]
-    #[Groups(["farm_products", "category_details"])]
+    #[Groups(["product", "farm_products", "category_details"])]
     private ?float $unitPrice = null;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
+    #[Groups(["product", "farm_products", "category_details"])]
     private ?Unity $unity = null;
 
     /**
@@ -72,6 +73,22 @@ class Product
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     #[Groups(["farm_products","product","category_details"])]
     private bool $featured = false;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["product", "farm_products", "category_details"])]
+    private ?string $origin = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(["product", "farm_products", "category_details"])]
+    private ?string $longDescription = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["product", "farm_products", "category_details"])]
+    private ?string $conservation = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["product", "farm_products", "category_details"])]
+    private ?string $preparationAdvice = null;
 
     public function __construct()
     {
@@ -217,6 +234,50 @@ class Product
     {
         $this->featured = $featured;
 
+        return $this;
+    }
+
+    public function getOrigin(): ?string
+    {
+        return $this->origin;
+    }
+
+    public function setOrigin(?string $origin): static
+    {
+        $this->origin = $origin;
+        return $this;
+    }
+
+    public function getLongDescription(): ?string
+    {
+        return $this->longDescription;
+    }
+
+    public function setLongDescription(?string $longDescription): static
+    {
+        $this->longDescription = $longDescription;
+        return $this;
+    }
+
+    public function getConservation(): ?string
+    {
+        return $this->conservation;
+    }
+
+    public function setConservation(?string $conservation): static
+    {
+        $this->conservation = $conservation;
+        return $this;
+    }
+
+    public function getPreparationAdvice(): ?string
+    {
+        return $this->preparationAdvice;
+    }
+
+    public function setPreparationAdvice(?string $preparationAdvice): static
+    {
+        $this->preparationAdvice = $preparationAdvice;
         return $this;
     }
 }

@@ -99,9 +99,12 @@ final class ProductController extends AbstractController
 
         // Return product with its media
         $jsonData = $serializer->serialize(
-            ['product' => $product, 'medias' => $medias],
+            [
+                'product' => $product,
+                'medias' => $medias,
+            ],
             'json',
-            ['groups' => ['product', 'media']]
+            ['groups' => ['product', 'media', 'category', 'parent', 'product_details', 'farm']]
         );
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }

@@ -14,6 +14,7 @@ use App\Entity\FarmUser;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Entity\Unity;
 
 class AppFixtures extends Fixture
 {
@@ -71,7 +72,6 @@ class AppFixtures extends Fixture
             [
                 "categorie" => "Produits Transformés",
                 "children" => [
-                    "Miel",
                     "Confiture",
                     "Sauce tomate",
                     "Farine"
@@ -183,6 +183,30 @@ class AppFixtures extends Fixture
             $tags[] = $tag;
         }
 
+        $units = [];
+        $unitsData = [
+            [
+                'name' => 'kg',
+                'symbol' => 'kg'
+            ],
+            [
+                'name' => 'L',
+                'symbol' => 'L'
+            ],
+            [
+                'name' => 'unite',
+                'symbol' => 'unite'
+            ]
+        ];
+
+        foreach ($unitsData as $unitData) {
+            $unit = new Unity();
+            $unit->setName($unitData["name"]);
+            $unit->setSymbol($unitData["symbol"]);
+            $manager->persist($unit);
+            $units[] = $unit;
+        }
+
         // Créer d'abord les types de fermes
         $farmTypes = [];
         for ($i = 0; $i <= 5; $i++) {
@@ -242,6 +266,11 @@ class AppFixtures extends Fixture
             foreach ($this->faker->randomElements($tags, rand(1, 3)) as $tag) {
                 $product->addTag($tag);
             }
+            $product->setUnity($this->faker->randomElement($units));
+            $product->setOrigin($this->faker->country());
+            $product->setLongDescription($this->faker->realText(400));
+            $product->setConservation($this->faker->sentence(6));
+            $product->setPreparationAdvice($this->faker->sentence(8));
             $product->setStatus("on");
 
             // Assigner le produit à une ferme aléatoire

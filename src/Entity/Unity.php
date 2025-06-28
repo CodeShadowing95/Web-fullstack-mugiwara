@@ -6,6 +6,7 @@ use App\Repository\UnityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UnityRepository::class)]
 class Unity
@@ -13,10 +14,16 @@ class Unity
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["product", "product_details", "category_details", "farm_products"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["product", "product_details", "category_details", "farm_products"])]
     private ?string $name = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(["product", "product_details", "category_details", "farm_products"])]
+    private ?string $symbol = null;
 
     /**
      * @var Collection<int, Product>
@@ -43,6 +50,17 @@ class Unity
     {
         $this->name = $name;
 
+        return $this;
+    }
+
+    public function getSymbol(): ?string
+    {
+        return $this->symbol;
+    }
+
+    public function setSymbol(?string $symbol): static
+    {
+        $this->symbol = $symbol;
         return $this;
     }
 

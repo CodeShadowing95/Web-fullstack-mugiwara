@@ -15,22 +15,21 @@ class ProductCategory
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["category"])]
+    #[Groups(["category", "product"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["category"])]
+    #[Groups(["category", "product"])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["category"])]
+    #[Groups(["category", "product"])]
     private ?string $description = null;
 
     /**
      * @var Collection<int, Product>
      */
     #[ORM\ManyToMany(targetEntity: Product::class, mappedBy: 'category')]
-    #[Groups(["category_details"])]
     private Collection $products;
 
     #[Groups([ "parent"])]
