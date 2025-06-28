@@ -42,8 +42,11 @@ final class ProductCategoryController extends AbstractController
             items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
         )
     )]
-    public function getChildren(ProductCategory $category, SerializerInterface $serializer): JsonResponse
+    public function getChildren(ProductCategory $category = null, SerializerInterface $serializer): JsonResponse
     {
+        if (!$category) {
+            return new JsonResponse(['error' => 'Catégorie non trouvée'], Response::HTTP_NOT_FOUND);
+        }
         $children = $category->getChildren();
         $jsonData = $serializer->serialize($children, 'json', ['groups' => ['category', 'category_details']]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
@@ -132,15 +135,18 @@ final class ProductCategoryController extends AbstractController
     #[OA\Response(
         response: 200,
         description: 'Returns a product category with its products',
-        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class, groups: ['category', 'category_details']))
+        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class, groups: ['category', 'category_details', 'children']))
     )]
     #[OA\Response(
         response: 404,
         description: 'Product category not found'
     )]
-    public function get(ProductCategory $category, SerializerInterface $serializer): JsonResponse
+    public function get(ProductCategory $category = null, SerializerInterface $serializer): JsonResponse
     {
-        $jsonData = $serializer->serialize($category, 'json', ['groups' => ['category', ]]);
+        if (!$category) {
+            return new JsonResponse(['error' => 'Catégorie non trouvée'], Response::HTTP_NOT_FOUND);
+        }
+        $jsonData = $serializer->serialize($category, 'json', ['groups' => ['category', 'children']]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
