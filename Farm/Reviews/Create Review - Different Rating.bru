@@ -1,0 +1,24 @@
+meta {
+  name: Create Review - Different Rating
+  type: http
+  seq: 9
+}
+
+post {
+  url: https://localhost/api/reviews
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{jwt_token}}
+}
+
+body:json {
+  {
+    "productId": 2,
+    "comment": "Produit correct mais pourrait être amélioré. La qualité est moyenne pour le prix demandé.",
+    "rating": 3
+  }
+} 

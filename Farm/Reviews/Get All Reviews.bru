@@ -1,0 +1,15 @@
+meta {
+  name: Get All Reviews
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://localhost/api/reviews
+  body: none
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+} 

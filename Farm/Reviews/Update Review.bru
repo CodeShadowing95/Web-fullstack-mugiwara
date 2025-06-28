@@ -1,0 +1,23 @@
+meta {
+  name: Update Review
+  type: http
+  seq: 6
+}
+
+put {
+  url: https://localhost/api/reviews/1
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{jwt_token}}
+}
+
+body:json {
+  {
+    "comment": "Produit mis à jour - toujours excellent !",
+    "rating": 4
+  }
+} 

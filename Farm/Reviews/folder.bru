@@ -1,0 +1,95 @@
+meta {
+  name: Reviews
+}
+
+item {
+  name: Get All Reviews
+  request {
+    url: "{{baseUrl}}/api/reviews"
+    method: "GET"
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }
+}
+
+item {
+  name: Get Product Reviews
+  request {
+    url: "{{baseUrl}}/api/reviews/product/1"
+    method: "GET"
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }
+}
+
+item {
+  name: Get User Reviews
+  request {
+    url: "{{baseUrl}}/api/reviews/user"
+    method: "GET"
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer {{jwt_token}}"
+    }
+  }
+}
+
+item {
+  name: Create Review
+  request {
+    url: "{{baseUrl}}/api/reviews"
+    method: "POST"
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer {{jwt_token}}"
+    }
+    body: '{
+      "productId": 1,
+      "comment": "Excellent produit, très frais et de qualité !",
+      "rating": 5
+    }'
+    bodyType: json
+  }
+}
+
+item {
+  name: Get Review Details
+  request {
+    url: "{{baseUrl}}/api/reviews/1"
+    method: "GET"
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }
+}
+
+item {
+  name: Update Review
+  request {
+    url: "{{baseUrl}}/api/reviews/1"
+    method: "PUT"
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer {{jwt_token}}"
+    }
+    body: '{
+      "comment": "Produit mis à jour - toujours excellent !",
+      "rating": 4
+    }'
+    bodyType: json
+  }
+}
+
+item {
+  name: Delete Review
+  request {
+    url: "{{baseUrl}}/api/reviews/1"
+    method: "DELETE"
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer {{jwt_token}}"
+    }
+  }
+} 
