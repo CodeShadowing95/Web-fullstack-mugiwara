@@ -8,6 +8,9 @@ up:
 down:
 	docker compose down
 
+restart:
+	docker compose restart
+
 build:
 	docker compose build
 
@@ -27,10 +30,10 @@ migrate: ## Applique les migrations sans interaction (automatique)
 migrate-safe: ## Applique les migrations avec confirmation (manuel)
 	docker compose exec $(PHP_SERVICE) php bin/console doctrine:migrations:migrate
 
-schema-update: ## Met à jour le schéma de la base de données
+dsu: ## Met à jour le schéma de la base de données
 	docker compose exec $(PHP_SERVICE) php bin/console doctrine:schema:update --force
 
-fixtures: ## Charge les fixtures (données fictives comme des utilisateurs, des articles, etc.) dans la base de données
+dfl: ## Charge les fixtures (données fictives comme des utilisateurs, des articles, etc.) dans la base de données
 	docker compose exec $(PHP_SERVICE) php bin/console doctrine:fixtures:load --no-interaction
 
 db-create: ## Crée la base de données si elle n'existe pas
@@ -53,7 +56,7 @@ composer-install:
 	docker compose exec $(PHP_SERVICE) composer install
 
 ### Clear cache ###
-cache-clear:
+cc:
 	docker compose exec $(PHP_SERVICE) php bin/console cache:clear
 
 ### Passphrase ###
