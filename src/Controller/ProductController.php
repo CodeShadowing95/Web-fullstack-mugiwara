@@ -41,7 +41,7 @@ final class ProductController extends AbstractController
     {
         $products = $repository->findAll();
         $productsWithMedia = [];
-        
+
         // Get associated media for each product
         $mediaRepo = $em->getRepository(Media::class);
         foreach ($products as $product) {
@@ -62,11 +62,11 @@ final class ProductController extends AbstractController
                 }, $medias)
             ];
         }
-        
+
         $jsonData = $serializer->serialize($productsWithMedia, 'json', ['groups' => ['product', 'category', 'parent', 'media']]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
-    
+
     public function getFullPath(Media $media, UrlGeneratorInterface $urlGenerator): string
     {
         // Generate the full path for the media file
@@ -96,11 +96,11 @@ final class ProductController extends AbstractController
         // Get associated media for the product
         $mediaRepo = $em->getRepository(Media::class);
         $medias = $mediaRepo->findBy(['entityType' => 'product', 'entityId' => $product->getId()]);
-        
+
         // Return product with its media
         $jsonData = $serializer->serialize(
-            ['product' => $product, 'medias' => $medias], 
-            'json', 
+            ['product' => $product, 'medias' => $medias],
+            'json',
             ['groups' => ['product', 'media']]
         );
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);

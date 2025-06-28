@@ -66,12 +66,17 @@ class Product
      * @var Collection<int, Tag>
      */
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'products')]
-    private Collection $Tags;
+    #[Groups(["farm_products","product","category_details"])]
+    private Collection $tags;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    #[Groups(["farm_products","product","category_details"])]
+    private bool $featured = false;
 
     public function __construct()
     {
         $this->category = new ArrayCollection();
-        $this->Tags = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -180,28 +185,37 @@ class Product
      */
     public function getTags(): Collection
     {
-        return $this->Tags;
+        return $this->tags;
     }
 
     public function setTags(Collection $tags): static
     {
-        $this->Tags = $tags;
-
+        $this->tags = $tags;
         return $this;
     }
 
     public function addTag(Tag $tag): static
     {
-        if (!$this->Tags->contains($tag)) {
-            $this->Tags->add($tag);
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
         }
-
         return $this;
     }
 
     public function removeTag(Tag $tag): static
     {
-        $this->Tags->removeElement($tag);
+        $this->tags->removeElement($tag);
+        return $this;
+    }
+
+    public function isFeatured(): bool
+    {
+        return $this->featured;
+    }
+
+    public function setFeatured(bool $featured): static
+    {
+        $this->featured = $featured;
 
         return $this;
     }
