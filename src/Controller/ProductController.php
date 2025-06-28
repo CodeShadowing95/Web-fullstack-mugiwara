@@ -44,8 +44,15 @@ final class ProductController extends AbstractController
 
         // Get associated media for each product
         $mediaRepo = $em->getRepository(Media::class);
+        $reviewRepo = $em->getRepository(\App\Entity\Review::class);
+        
         foreach ($products as $product) {
             $medias = $mediaRepo->findBy(['entityType' => 'product', 'entityId' => $product->getId()]);
+            
+            // Get reviews and average rating for the product
+            $reviews = $reviewRepo->findByProduct($product->getId());
+            $averageRating = $reviewRepo->findAverageRatingByProduct($product->getId());
+            
             $productsWithMedia[] = [
                 'product' => $product,
                 'medias' => array_map(function (Media $media) {
@@ -59,7 +66,9 @@ final class ProductController extends AbstractController
                         'status' => $media->getStatus(),
                         'uploadedAt' => $media->getUploadedAt()->format('Y-m-d H:i:s'),
                     ];
-                }, $medias)
+                }, $medias),
+                'averageRating' => $averageRating,
+                'reviewsCount' => count($reviews),
             ];
         }
 
@@ -97,14 +106,22 @@ final class ProductController extends AbstractController
         $mediaRepo = $em->getRepository(Media::class);
         $medias = $mediaRepo->findBy(['entityType' => 'product', 'entityId' => $product->getId()]);
 
-        // Return product with its media
+        // Get reviews for the product
+        $reviewRepo = $em->getRepository(\App\Entity\Review::class);
+        $reviews = $reviewRepo->findByProduct($product->getId());
+        $averageRating = $reviewRepo->findAverageRatingByProduct($product->getId());
+
+        // Return product with its media and reviews
         $jsonData = $serializer->serialize(
             [
                 'product' => $product,
                 'medias' => $medias,
+                'reviews' => $reviews,
+                'averageRating' => $averageRating,
+                'reviewsCount' => count($reviews),
             ],
             'json',
-            ['groups' => ['product', 'media', 'category', 'parent', 'product_details', 'farm']]
+            ['groups' => ['product', 'media', 'category', 'parent', 'product_details', 'farm', 'product_reviews']]
         );
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }

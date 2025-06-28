@@ -19,22 +19,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'review', 'product_reviews'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'review', 'product_reviews'])]
     private ?string $uuid = null;
 
     #[ORM\Column]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'review', 'product_reviews'])]
     private array $roles = [];
 
     #[ORM\Column]
     private ?string $password = null; // ⚠️ Ne pas exposer dans les groupes publics
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'review', 'product_reviews'])]
     #[MaxDepth(2)]
     private ?Persona $persona = null;
 

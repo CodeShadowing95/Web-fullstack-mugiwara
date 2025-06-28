@@ -12,7 +12,7 @@ class Persona
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'persona', cascade: ['persist', 'remove'])]
@@ -20,39 +20,39 @@ class Persona
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?string $address = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?int $zipCode = null;
 
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?string $city = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?string $phoneNumber = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?\DateTimeInterface $birthDate = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(["persona", "user:read"])]
+    #[Groups(["persona", "user:read", "review", "product_reviews"])]
     private ?string $gender = null;
 
     public function getId(): ?int

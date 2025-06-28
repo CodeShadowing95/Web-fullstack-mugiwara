@@ -349,6 +349,38 @@ class AppFixtures extends Fixture
             $personaIndex++;
         }
 
+        // Fixtures pour les Reviews
+        $reviewComments = [
+            "Excellent produit, très frais et de qualité !",
+            "Très satisfait de mon achat, je recommande vivement.",
+            "Produit conforme à mes attentes, livraison rapide.",
+            "Qualité exceptionnelle, prix très correct.",
+            "Un peu déçu par la taille, mais le goût est au rendez-vous.",
+            "Parfait pour mes recettes, je rachèterai sans hésiter.",
+            "Produit bio de qualité, exactement ce que je cherchais.",
+            "Très bon rapport qualité-prix, je recommande.",
+            "Ferme sérieuse, produits frais et de saison.",
+            "Service client au top, produits délicieux."
+        ];
+
+        // Créer des reviews pour certains produits
+        foreach ($products as $product) {
+            // 30% de chance qu'un produit ait des reviews
+            if ($this->faker->boolean(30)) {
+                $numberOfReviews = $this->faker->numberBetween(1, 5);
+                
+                for ($i = 0; $i < $numberOfReviews; $i++) {
+                    $review = new \App\Entity\Review();
+                    $review->setProduct($product);
+                    $review->setUser($this->faker->randomElement($users));
+                    $review->setComment($this->faker->randomElement($reviewComments));
+                    $review->setRating($this->faker->numberBetween(1, 5));
+                    
+                    $manager->persist($review);
+                }
+            }
+        }
+
         $manager->flush();
     }
 }

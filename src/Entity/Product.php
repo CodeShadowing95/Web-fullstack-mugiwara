@@ -90,10 +90,18 @@ class Product
     #[Groups(["product", "farm_products", "category_details"])]
     private ?string $preparationAdvice = null;
 
+    /**
+     * @var Collection<int, Review>
+     */
+    #[ORM\OneToMany(mappedBy: 'product', targetEntity: Review::class, orphanRemoval: true)]
+    #[Groups(["product_reviews"])]
+    private Collection $reviews;
+
     public function __construct()
     {
         $this->category = new ArrayCollection();
         $this->tags = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -279,5 +287,54 @@ class Product
     {
         $this->preparationAdvice = $preparationAdvice;
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Review>
+     */
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(Review $review): static
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews->add($review);
+            $review->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReview(Review $review): static
+    {
+        if ($this->reviews->removeElement($review)) {
+            // set the owning side to null (unless already changed)
+            if ($review->getProduct() === $this) {
+                $review->setProduct(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getAverageRating(): ?float
+    {
+        if ($this->reviews->isEmpty()) {
+            return null;
+        }
+
+        $totalRating = 0;
+        foreach ($this->reviews as $review) {
+            $totalRating += $review->getRating();
+        }
+
+        return round($totalRating / $this->reviews->count(), 1);
+    }
+
+    public function getReviewsCount(): int
+    {
+        return $this->reviews->count();
     }
 }
