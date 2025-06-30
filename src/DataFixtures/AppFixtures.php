@@ -217,6 +217,38 @@ class AppFixtures extends Fixture
             $farmTypes[] = $farmType;
         }
 
+        $mediaTypes = [];
+        $mediaTypesData = [
+            [
+                'name' => 'image',
+                'slug' => 'image'
+            ],
+            [
+                'name' => 'thumbnail',
+                'slug' => 'thumbnail'
+            ],
+            [
+                'name' => 'banner',
+                'slug' => 'banner'
+            ],
+            [
+                'name' => 'logo',
+                'slug' => 'logo'
+            ],
+            [
+                'name' => 'document',
+                'slug' => 'document'
+            ]
+        ];
+
+        foreach ($mediaTypesData as $mediaTypeData) {
+            $mediaType = new MediaType();
+            $mediaType->setName($mediaTypeData["name"]);
+            $mediaType->setSlug($mediaTypeData["slug"]);
+            $manager->persist($mediaType);
+            $mediaTypes[] = $mediaType;
+        }
+
         // Créer ensuite les fermes
         $farms = [];
         for ($i = 0; $i <= 10; $i++) {
@@ -252,17 +284,88 @@ class AppFixtures extends Fixture
             $farms[] = $farm;
         }
 
-        // Ensuite créer les produits et les assigner aux fermes
+        // Créer ensuite les produits et les assigner aux fermes
         $products = [];
-        for ($i = 0; $i <= 30; $i++) {
+        $images = [
+            ['file' => 'flocon-avoines.jpg', 'name' => "Flocons d'avoine"],
+            ['file' => 'oeufs.jpg', 'name' => 'Oeufs'],
+            ['file' => 'saucissons.jpg', 'name' => 'Saucissons'],
+            ['file' => 'cornichons.jpg', 'name' => 'Cornichons'],
+            ['file' => 'aubergines.webp', 'name' => 'Aubergines'],
+            ['file' => 'peches.jpg', 'name' => 'Pêches'],
+            ['file' => 'tomates-2.jpg', 'name' => 'Tomates'],
+            ['file' => 'tomates.jpeg', 'name' => 'Tomates'],
+            ['file' => 'pommes.jpeg', 'name' => 'Pommes'],
+            ['file' => 'carrottes-2.jpeg', 'name' => 'Carottes'],
+            ['file' => 'carrottes.jpeg', 'name' => 'Carottes'],
+            ['file' => 'fraises.jpg', 'name' => 'Fraises'],
+            ['file' => 'poires.webp', 'name' => 'Poires'],
+            ['file' => 'abricots.webp', 'name' => 'Abricots'],
+            ['file' => 'cerises.webp', 'name' => 'Cerises'],
+            ['file' => 'prunes.webp', 'name' => 'Prunes'],
+            ['file' => 'navets.jpg', 'name' => 'Navets'],
+            ['file' => 'poirreaux.jpeg', 'name' => 'Poireaux'],
+            ['file' => 'radis.webp', 'name' => 'Radis'],
+            ['file' => 'salades.webp', 'name' => 'Salade'],
+            ['file' => 'courgettes.jpeg', 'name' => 'Courgettes'],
+            ['file' => 'comcombres.jpg', 'name' => 'Concombres'],
+            ['file' => 'oignons.webp', 'name' => 'Oignons'],
+            ['file' => 'ails.png', 'name' => 'Ail'],
+            ['file' => 'echalottes.jpg', 'name' => 'Échalotes'],
+            ['file' => 'pommeterres.jpeg', 'name' => 'Pommes de terre'],
+            ['file' => 'champigons.webp', 'name' => 'Champignons'],
+            ['file' => 'epinards.jpeg', 'name' => 'Épinards'],
+            ['file' => 'blettes.webp', 'name' => 'Blettes'],
+            ['file' => 'haricots-verts.jpg', 'name' => 'Haricots verts'],
+            ['file' => 'petits-pois.jpg', 'name' => 'Petits pois'],
+            ['file' => 'lentilles.jpg', 'name' => 'Lentilles'],
+            ['file' => 'pois-chiches.jpg', 'name' => 'Pois chiches'],
+            ['file' => 'noisettes.jpg', 'name' => 'Noisettes'],
+            ['file' => 'noix.jpg', 'name' => 'Noix'],
+            ['file' => 'amandes.jpg', 'name' => 'Amandes'],
+            ['file' => 'pistaches.jpg', 'name' => 'Pistaches'],
+            ['file' => 'fromage-chèvre.jpg', 'name' => 'Fromage de chèvre'],
+            ['file' => 'fromage-brebis.jpg', 'name' => 'Fromage de brebis'],
+            ['file' => 'fromage-vache.jpg', 'name' => 'Fromage de vache'],
+            ['file' => 'yaourt.jpg', 'name' => 'Yaourt'],
+            ['file' => 'beurre.jpg', 'name' => 'Beurre'],
+            ['file' => 'creme-fraiche.jpg', 'name' => 'Crème fraîche'],
+            ['file' => 'pain.jpg', 'name' => 'Pain'],
+            ['file' => 'brioche.jpg', 'name' => 'Brioche'],
+            ['file' => 'cookies.jpg', 'name' => 'Cookies'],
+            ['file' => 'tarte.jpg', 'name' => 'Tarte'],
+            ['file' => 'confiture.jpg', 'name' => 'Confiture'],
+            ['file' => 'sauce-tomate.jpg', 'name' => 'Sauce tomate'],
+            ['file' => 'farine.jpg', 'name' => 'Farine'],
+            ['file' => 'jus-pomme.jpg', 'name' => 'Jus de pomme'],
+            ['file' => 'cidre.jpg', 'name' => 'Cidre'],
+            ['file' => 'biere.jpg', 'name' => 'Bière'],
+            ['file' => 'tisane.jpg', 'name' => 'Tisane']
+        ];
+
+        $mediaTypesBySlug = [];
+        foreach ($mediaTypes as $mediaType) {
+            $mediaTypesBySlug[$mediaType->getSlug()] = $mediaType;
+        }
+
+        // Créer un produit pour chaque image et l'assigner à une catégorie principale de façon cyclique
+        $mainCategories = array_values(array_filter($categories, function($cat) {
+            return $cat->getCategoryParent() === null;
+        }));
+        
+        if (empty($mainCategories)) {
+            throw new \Exception("Aucune catégorie principale trouvée. Assurez-vous d'avoir des catégories sans parent.");
+        }
+
+        for ($i = 0; $i < 50; $i++) {
+            $img = $images[$i % count($images)];
             $product = new Product();
-            $product->setName($this->faker->word);
+            $product->setName($img['name']);
             $product->setQuantity($this->faker->numberBetween(1, 50));
             $product->setUnitPrice($this->faker->randomFloat(2, 3, 100));
             $product->setPrice($this->faker->randomFloat(2, 3, 100));
             $product->setFeatured($this->faker->boolean);
-            $randomCategory = $categories[array_rand($categories)];
-            $product->addCategory($randomCategory);
+            $product->addCategory($mainCategories[$i % count($mainCategories)]);
             foreach ($this->faker->randomElements($tags, rand(1, 3)) as $tag) {
                 $product->addTag($tag);
             }
@@ -272,16 +375,49 @@ class AppFixtures extends Fixture
             $product->setConservation($this->faker->sentence(6));
             $product->setPreparationAdvice($this->faker->sentence(8));
             $product->setStatus("on");
-
-            // Assigner le produit à une ferme aléatoire
             $randomFarm = $farms[array_rand($farms)];
             $product->setFarm($randomFarm);
-            // $randomFarm->addProduct($product);
-
             $manager->persist($product);
             $products[] = $product;
         }
+        
+        $manager->flush();
 
+        // Créer les médias pour chaque produit (seulement si le fichier existe)
+        foreach ($products as $idx => $product) {
+            $img = $images[$idx % count($images)];
+            $filePath = __DIR__ . '/../../public/media/' . $img['file'];
+            if (file_exists($filePath)) {
+                // THUMBNAIL
+                $mediaThumb = new \App\Entity\Media();
+                $mediaThumb->setRealName($img['file']);
+                $mediaThumb->setRealPath('media/' . $img['file']);
+                $mediaThumb->setPublicPath('media/' . $img['file']);
+                $mediaThumb->setMime(mime_content_type($filePath));
+                $mediaThumb->setStatus('on');
+                $mediaThumb->setUploadedAt(new \DateTime());
+                $mediaThumb->setEntityType('product');
+                $mediaThumb->setEntityId($product->getId());
+                $mediaThumb->setMediaType($mediaTypesBySlug['thumbnail'] ?? null);
+                $manager->persist($mediaThumb);
+
+                // IMAGE
+                $mediaImg = new \App\Entity\Media();
+                $mediaImg->setRealName($img['file']);
+                $mediaImg->setRealPath('media/' . $img['file']);
+                $mediaImg->setPublicPath('media/' . $img['file']);
+                $mediaImg->setMime(mime_content_type($filePath));
+                $mediaImg->setStatus('on');
+                $mediaImg->setUploadedAt(new \DateTime());
+                $mediaImg->setEntityType('product');
+                $mediaImg->setEntityId($product->getId());
+                $mediaImg->setMediaType($mediaTypesBySlug['image'] ?? null);
+                $manager->persist($mediaImg);
+            }
+        }
+        $manager->flush();
+
+        // Créer les utilisateurs avant les avis
         $users = [];
         $usersForFarm = [];
 
@@ -302,7 +438,33 @@ class AppFixtures extends Fixture
             $usersForFarm[] = $user;
             $manager->persist($user);
         }
+        $manager->flush();
 
+        // Ajouter des avis à chaque produit
+        $reviewComments = [
+            "Excellent produit, très frais et de qualité !",
+            "Très satisfait de mon achat, je recommande vivement.",
+            "Produit conforme à mes attentes, livraison rapide.",
+            "Qualité exceptionnelle, prix très correct.",
+            "Un peu déçu par la taille, mais le goût est au rendez-vous.",
+            "Parfait pour mes recettes, je rachèterai sans hésiter.",
+            "Produit bio de qualité, exactement ce que je cherchais.",
+            "Très bon rapport qualité-prix, je recommande.",
+            "Ferme sérieuse, produits frais et de saison.",
+            "Service client au top, produits délicieux."
+        ];
+        foreach ($products as $product) {
+            $nbReviews = rand(1, 3);
+            for ($i = 0; $i < $nbReviews; $i++) {
+                $review = new \App\Entity\Review();
+                $review->setProduct($product);
+                $review->setUser($this->faker->randomElement($users));
+                $review->setComment($reviewComments[array_rand($reviewComments)]);
+                $review->setRating(rand(3, 5));
+                $manager->persist($review);
+            }
+        }
+        $manager->flush();
 
         $farmIndex = 0;
         foreach ($farms as $farm) {
@@ -315,16 +477,6 @@ class AppFixtures extends Fixture
             $farmIndex++;
 
             $manager->persist($farm);
-        }
-
-        // Fixtures pour MediaType
-        $mediaTypes = [];
-        for ($i = 0; $i <= 5; $i++) {
-            $mediaType = new MediaType();
-            $mediaType->setName($this->faker->word);
-            $mediaType->setSlug($this->faker->slug);
-            $manager->persist($mediaType);
-            $mediaTypes[] = $mediaType;
         }
 
         // Fixtures pour Persona
@@ -347,38 +499,6 @@ class AppFixtures extends Fixture
             $persona->setUser($user);
             $manager->persist($persona);
             $personaIndex++;
-        }
-
-        // Fixtures pour les Reviews
-        $reviewComments = [
-            "Excellent produit, très frais et de qualité !",
-            "Très satisfait de mon achat, je recommande vivement.",
-            "Produit conforme à mes attentes, livraison rapide.",
-            "Qualité exceptionnelle, prix très correct.",
-            "Un peu déçu par la taille, mais le goût est au rendez-vous.",
-            "Parfait pour mes recettes, je rachèterai sans hésiter.",
-            "Produit bio de qualité, exactement ce que je cherchais.",
-            "Très bon rapport qualité-prix, je recommande.",
-            "Ferme sérieuse, produits frais et de saison.",
-            "Service client au top, produits délicieux."
-        ];
-
-        // Créer des reviews pour certains produits
-        foreach ($products as $product) {
-            // 30% de chance qu'un produit ait des reviews
-            if ($this->faker->boolean(30)) {
-                $numberOfReviews = $this->faker->numberBetween(1, 5);
-                
-                for ($i = 0; $i < $numberOfReviews; $i++) {
-                    $review = new \App\Entity\Review();
-                    $review->setProduct($product);
-                    $review->setUser($this->faker->randomElement($users));
-                    $review->setComment($this->faker->randomElement($reviewComments));
-                    $review->setRating($this->faker->numberBetween(1, 5));
-                    
-                    $manager->persist($review);
-                }
-            }
         }
 
         $manager->flush();

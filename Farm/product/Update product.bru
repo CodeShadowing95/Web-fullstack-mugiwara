@@ -1,0 +1,28 @@
+meta {
+  name: Update product
+  type: http
+  seq: 4
+}
+
+patch {
+  url: https://localhost/api/v1/product/679
+  body: multipartForm
+  auth: inherit
+}
+
+body:form-urlencoded {
+  : 
+  : 
+}
+
+body:multipart-form {
+  images[]: @file(C:\Users\cocog\Downloads\logo_transparent(1).png|C:\Users\cocog\Downloads\logo-white-full.png|C:\Users\cocog\Downloads\chèques.png)
+  data: {
+    "name": "Bio kskdkddk",
+    "description": "Eos in et rem debitis error in voluptates. Quia possimus quos",
+    "quantity": 22,
+    "unitPrice": 12,
+    "price": 12,
+    "longDescription": "Eos in et rem debitis error Eos in et rem debitis error Eos in et rem debitis error"
+  }
+}

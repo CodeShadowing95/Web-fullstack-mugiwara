@@ -1,0 +1,16 @@
+meta {
+  name: CreateProduct
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://localhost/api/public/v1/product
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  data: {"name": "Bio", "description": "Eos in et rem debitis error in voluptates. Quia possimus quos", "quantity": 55, "unitPrice": 12, "price": 12, "status": "off"}
+  images[]: @file(C:\Users\cocog\Downloads\logo_transparent(1).png)
+}
