@@ -217,6 +217,38 @@ class AppFixtures extends Fixture
             $farmTypes[] = $farmType;
         }
 
+        $mediaTypes = [];
+        $mediaTypesData = [
+            [
+                'name' => 'image',
+                'slug' => 'image'
+            ],
+            [
+                'name' => 'thumbnail',
+                'slug' => 'thumbnail'
+            ],
+            [
+                'name' => 'banner',
+                'slug' => 'banner'
+            ],
+            [
+                'name' => 'logo',
+                'slug' => 'logo'
+            ],
+            [
+                'name' => 'document',
+                'slug' => 'document'
+            ]
+        ];
+
+        foreach ($mediaTypesData as $mediaTypeData) {
+            $mediaType = new MediaType();
+            $mediaType->setName($mediaTypeData["name"]);
+            $mediaType->setSlug($mediaTypeData["slug"]);
+            $manager->persist($mediaType);
+            $mediaTypes[] = $mediaType;
+        }
+
         // Créer ensuite les fermes
         $farms = [];
         for ($i = 0; $i <= 10; $i++) {
@@ -317,16 +349,6 @@ class AppFixtures extends Fixture
             $manager->persist($farm);
         }
 
-        // Fixtures pour MediaType
-        $mediaTypes = [];
-        for ($i = 0; $i <= 5; $i++) {
-            $mediaType = new MediaType();
-            $mediaType->setName($this->faker->word);
-            $mediaType->setSlug($this->faker->slug);
-            $manager->persist($mediaType);
-            $mediaTypes[] = $mediaType;
-        }
-
         // Fixtures pour Persona
         $personaIndex = 0;
         foreach ($users as $user) {
@@ -368,14 +390,14 @@ class AppFixtures extends Fixture
             // 30% de chance qu'un produit ait des reviews
             if ($this->faker->boolean(30)) {
                 $numberOfReviews = $this->faker->numberBetween(1, 5);
-                
+
                 for ($i = 0; $i < $numberOfReviews; $i++) {
                     $review = new \App\Entity\Review();
                     $review->setProduct($product);
                     $review->setUser($this->faker->randomElement($users));
                     $review->setComment($this->faker->randomElement($reviewComments));
                     $review->setRating($this->faker->numberBetween(1, 5));
-                    
+
                     $manager->persist($review);
                 }
             }

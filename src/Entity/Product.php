@@ -61,7 +61,7 @@ class Product
      */
     #[ORM\ManyToMany(targetEntity: ProductCategory::class, inversedBy: 'products')]
     #[Groups(["product_details","product"])]
-    private Collection $category;
+    private Collection $categories;
 
     /**
      * @var Collection<int, Tag>
@@ -99,7 +99,7 @@ class Product
 
     public function __construct()
     {
-        $this->category = new ArrayCollection();
+        $this->categories = new ArrayCollection();
         $this->tags = new ArrayCollection();
         $this->reviews = new ArrayCollection();
     }
@@ -184,24 +184,22 @@ class Product
     /**
      * @return Collection<int, ProductCategory>
      */
-    public function getCategory(): Collection
+    public function getCategories(): Collection
     {
-        return $this->category;
+        return $this->categories;
     }
 
     public function addCategory(ProductCategory $category): static
     {
-        if (!$this->category->contains($category)) {
-            $this->category->add($category);
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
         }
-
         return $this;
     }
 
     public function removeCategory(ProductCategory $category): static
     {
-        $this->category->removeElement($category);
-
+        $this->categories->removeElement($category);
         return $this;
     }
 

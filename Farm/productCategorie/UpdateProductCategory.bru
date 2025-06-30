@@ -1,0 +1,18 @@
+meta {
+  name: UpdateProductCategory
+  type: http
+  seq: 4
+}
+
+patch {
+  url: https://localhost/api/v1/product-category/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Bio modifié",
+    "description": "Nouvelle description de la catégorie Bio"
+  }
+}

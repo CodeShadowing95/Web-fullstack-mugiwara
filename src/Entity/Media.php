@@ -47,6 +47,7 @@ class Media
     private ?File $file = null;
 
     #[ORM\ManyToOne(inversedBy: 'medias')]
+    #[Groups(['media'])]
     private ?MediaType $mediaType = null;
 
     #[ORM\Column(length: 255, nullable: true)]

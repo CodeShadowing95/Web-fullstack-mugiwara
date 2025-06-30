@@ -37,53 +37,28 @@ final class ProductController extends AbstractController
         )
     )]
     #[IsGranted('PUBLIC_ACCESS')]
-    public function getAll(ProductRepository $repository, SerializerInterface $serializer, EntityManagerInterface $em,  UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function getAll(ProductRepository $repository, SerializerInterface $serializer, EntityManagerInterface $em): JsonResponse
     {
         $products = $repository->findAll();
-        $productsWithMedia = [];
+        $productsWithData = [];
 
-        // Get associated media for each product
-        $mediaRepo = $em->getRepository(Media::class);
+        // Get reviews and average rating for each product
         $reviewRepo = $em->getRepository(\App\Entity\Review::class);
-        
+
         foreach ($products as $product) {
-            $medias = $mediaRepo->findBy(['entityType' => 'product', 'entityId' => $product->getId()]);
-            
             // Get reviews and average rating for the product
             $reviews = $reviewRepo->findByProduct($product->getId());
             $averageRating = $reviewRepo->findAverageRatingByProduct($product->getId());
-            
-            $productsWithMedia[] = [
+
+            $productsWithData[] = [
                 'product' => $product,
-                'medias' => array_map(function (Media $media) {
-                    // Serialize media to include full path
-                    return [
-                        'id' => $media->getId(),
-                        'realName' => $media->getRealName(),
-                        'realPath' => $this->getFullPath($media, $this->container->get('router')),
-                        'publicPath' => $media->getPublicPath(),
-                        'mime' => $media->getMime(),
-                        'status' => $media->getStatus(),
-                        'uploadedAt' => $media->getUploadedAt()->format('Y-m-d H:i:s'),
-                    ];
-                }, $medias),
                 'averageRating' => $averageRating,
                 'reviewsCount' => count($reviews),
             ];
         }
 
-        $jsonData = $serializer->serialize($productsWithMedia, 'json', ['groups' => ['product', 'category', 'parent', 'media']]);
+        $jsonData = $serializer->serialize($productsWithData, 'json', ['groups' => ['product', 'categories', 'parent', 'media']]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
-    }
-
-    public function getFullPath(Media $media, UrlGeneratorInterface $urlGenerator): string
-    {
-        // Generate the full path for the media file
-        return $urlGenerator->generate(
-            'app_media',
-            [],
-            UrlGeneratorInterface::ABSOLUTE_URL
-        ) . str_replace('/public/', '', $media->getPublicPath() . '/' . $media->getRealPath());
     }
 
     #[Route('api/public/v1/product/{id}', name: 'api_get_product', methods: ['GET'])]
@@ -102,26 +77,21 @@ final class ProductController extends AbstractController
     )]
     public function get(Product $product, SerializerInterface $serializer, EntityManagerInterface $em): JsonResponse
     {
-        // Get associated media for the product
-        $mediaRepo = $em->getRepository(Media::class);
-        $medias = $mediaRepo->findBy(['entityType' => 'product', 'entityId' => $product->getId()]);
-
         // Get reviews for the product
         $reviewRepo = $em->getRepository(\App\Entity\Review::class);
         $reviews = $reviewRepo->findByProduct($product->getId());
         $averageRating = $reviewRepo->findAverageRatingByProduct($product->getId());
 
-        // Return product with its media and reviews
+        // Return product with its reviews
         $jsonData = $serializer->serialize(
             [
                 'product' => $product,
-                'medias' => $medias,
                 'reviews' => $reviews,
                 'averageRating' => $averageRating,
                 'reviewsCount' => count($reviews),
             ],
             'json',
-            ['groups' => ['product', 'media', 'category', 'parent', 'product_details', 'farm', 'product_reviews']]
+            ['groups' => ['product', 'media', 'categories', 'parent', 'product_details', 'farm', 'product_reviews']]
         );
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
@@ -137,7 +107,7 @@ final class ProductController extends AbstractController
                 new OA\Property(property: 'quantity', type: 'integer'),
                 new OA\Property(property: 'price', type: 'number'),
                 new OA\Property(property: 'unitPrice', type: 'number'),
-                new OA\Property(property: 'category', type: 'array', items: new OA\Items(type: 'integer'))
+                new OA\Property(property: 'categories', type: 'array', items: new OA\Items(type: 'integer'))
             ]
         )
     )]
@@ -159,33 +129,23 @@ final class ProductController extends AbstractController
         }
         $product = $serializer->deserialize($data, Product::class, 'json');
 
-
         $errors = $validator->validate($product);
         if (count($errors) > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
         }
 
-        if($request->has('image')) {
-            $image = $request->files->get('image');
-            if ($image) {
-                $product->setImageFile($image);
-            }
-        }
-
-        $product->setStatus('on');
         $em->persist($product);
         $em->flush();
-        // Handle file upload if present
-        $images = [];
+
         if ($request->files->has('images')) {
             $uploadedFiles = $request->files->get('images');
             if (is_array($uploadedFiles)) {
                 foreach ($uploadedFiles as $uploadedFile) {
-                    $media = $this->mediaUploader->upload($uploadedFile, 'media', 'product', $product->getId());
-                    $images[] = $media;
+                    $this->mediaUploader->upload($uploadedFile, 'media', 'product', $product->getId(), 'image');
                 }
             }
         }
+
         $jsonData = $serializer->serialize($product, 'json', ['groups' => ['product']]);
         $location = $urlGenerator->generate('api_get_product', ['id' => $product->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 

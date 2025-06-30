@@ -1,0 +1,16 @@
+meta {
+  name: UpdateProduct
+  type: http
+  seq: 3
+}
+
+patch {
+  url: https://localhost/api/v1/product/700
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  data: '{"name": "Bio", "description": "Eos in et rem debitis error in voluptates. Quia possimus quos", "quantity": 55, "unitPrice": 12, "price": 12, "status": "off"}'
+  images[]: @file(C:\Users\cocog\Downloads\agenda.jpeg|C:\Users\cocog\Downloads\une-personne-en-deambulateur.webp)
+}

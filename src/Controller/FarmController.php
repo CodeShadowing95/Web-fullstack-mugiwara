@@ -23,7 +23,7 @@ use App\Repository\FarmTypeRepository;
 
 final class FarmController extends AbstractController
 {
-    #[Route('api/public/v1/farms', name: 'api_get_all_farm', methods: ['GET'])]
+    #[Route('api/public/v1/farms', name: 'api_get_all_farms', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Returns a list of all farms',
