@@ -42,7 +42,7 @@ class AutoDiscoveryNormalizer implements NormalizerInterface
             $entityType = strtolower($className);
             $mediaRepo = $this->entityManager->getRepository(Media::class);
             $medias = $mediaRepo->findBy(['entityType' => $entityType, 'entityId' => $object->getId()]);
-            
+
             // Sérialiser chaque média individuellement avec le groupe 'media' et gestion des références circulaires
             $mediaContext = array_merge($context, [
                 'groups' => ['media'],

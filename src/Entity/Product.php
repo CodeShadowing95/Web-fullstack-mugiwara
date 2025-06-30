@@ -97,6 +97,18 @@ class Product
     #[Groups(["product_reviews"])]
     private Collection $reviews;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(["farm_products","product", "category_details"])]
+    private ?float $oldPrice = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(["product", "farm_products", "category_details"])]
+    private ?string $shortDescription = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(["product", "farm_products", "category_details"])]
+    private ?int $stock = null;
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
@@ -334,5 +346,38 @@ class Product
     public function getReviewsCount(): int
     {
         return $this->reviews->count();
+    }
+
+    public function getOldPrice(): ?float
+    {
+        return $this->oldPrice;
+    }
+
+    public function setOldPrice(?float $oldPrice): static
+    {
+        $this->oldPrice = $oldPrice;
+        return $this;
+    }
+
+    public function getShortDescription(): ?string
+    {
+        return $this->shortDescription;
+    }
+
+    public function setShortDescription(?string $shortDescription): static
+    {
+        $this->shortDescription = $shortDescription;
+        return $this;
+    }
+
+    public function getStock(): ?int
+    {
+        return $this->stock;
+    }
+
+    public function setStock(?int $stock): static
+    {
+        $this->stock = $stock;
+        return $this;
     }
 }

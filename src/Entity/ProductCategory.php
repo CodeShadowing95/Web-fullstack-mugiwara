@@ -116,7 +116,9 @@ class ProductCategory
         $this->categoryParent = $categoryParent;
 
         return $this;
-    }public function getParents(): array
+    }
+
+    public function getParents(): array
     {
         $parents = [];
         $parent = $this->getCategoryParent();

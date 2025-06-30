@@ -16,6 +16,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\MediaRepository;
 
 
 #[OA\Info(
@@ -42,14 +43,43 @@ final class ProductCategoryController extends AbstractController
             items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
         )
     )]
-    public function getChildren(ProductCategory $category = null, SerializerInterface $serializer): JsonResponse
+    public function getChildren(ProductCategory $category = null, SerializerInterface $serializer, MediaRepository $mediaRepository): JsonResponse
     {
         if (!$category) {
             return new JsonResponse(['error' => 'Catégorie non trouvée'], Response::HTTP_NOT_FOUND);
         }
         $children = $category->getChildren();
-        $jsonData = $serializer->serialize($children, 'json', ['groups' => ['category', 'category_details']]);
-        return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
+        $childrenArray = [];
+        foreach ($children as $child) {
+            $thumbnail = null;
+            $medias = $mediaRepository->findBy(['entityType' => 'category', 'entityId' => $child->getId()]);
+            foreach ($medias as $media) {
+                if ($media->getMediaType() && $media->getMediaType()->getSlug() === 'thumbnail') {
+                    $thumbnail = $media;
+                    break;
+                }
+            }
+            $childData = json_decode($serializer->serialize($child, 'json', ['groups' => ['category', 'category_details']]), true);
+            $childData['thumbnail'] = $thumbnail ? json_decode($serializer->serialize($thumbnail, 'json', ['groups' => ['media']]), true) : null;
+            $grandChildren = $child->getChildren();
+            $grandChildrenArray = [];
+            foreach ($grandChildren as $grandChild) {
+                $grandChildThumbnail = null;
+                $grandChildMedias = $mediaRepository->findBy(['entityType' => 'category', 'entityId' => $grandChild->getId()]);
+                foreach ($grandChildMedias as $media) {
+                    if ($media->getMediaType() && $media->getMediaType()->getSlug() === 'thumbnail') {
+                        $grandChildThumbnail = $media;
+                        break;
+                    }
+                }
+                $grandChildData = json_decode($serializer->serialize($grandChild, 'json', ['groups' => ['category', 'category_details']]), true);
+                $grandChildData['thumbnail'] = $grandChildThumbnail ? json_decode($serializer->serialize($grandChildThumbnail, 'json', ['groups' => ['media']]), true) : null;
+                $grandChildrenArray[] = $grandChildData;
+            }
+            $childData['children'] = $grandChildrenArray;
+            $childrenArray[] = $childData;
+        }
+        return new JsonResponse($childrenArray, Response::HTTP_OK);
     }
 
     #[Route('api/v1/product-category/{id}/parent/{parentId}', name: 'api_set_category_parent', methods: ['PUT'])]
@@ -116,11 +146,40 @@ final class ProductCategoryController extends AbstractController
         )
     )]
     #[OA\Tag(name: 'Product Categories')]
-    public function getAll(ProductCategoryRepository $repository, SerializerInterface $serializer): JsonResponse
+    public function getAll(ProductCategoryRepository $repository, SerializerInterface $serializer, MediaRepository $mediaRepository): JsonResponse
     {
         $categories = $repository->findBy(['categoryParent' => null], ['name' => 'ASC']);
-        $jsonData = $serializer->serialize($categories, 'json',['groups' => ['category',"children"]]);
-        return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
+        $categoriesArray = [];
+        foreach ($categories as $category) {
+            $thumbnail = null;
+            $medias = $mediaRepository->findBy(['entityType' => 'category', 'entityId' => $category->getId()]);
+            foreach ($medias as $media) {
+                if ($media->getMediaType() && $media->getMediaType()->getSlug() === 'thumbnail') {
+                    $thumbnail = $media;
+                    break;
+                }
+            }
+            $catData = json_decode($serializer->serialize($category, 'json', ['groups' => ['category', 'children']]), true);
+            $catData['thumbnail'] = $thumbnail ? json_decode($serializer->serialize($thumbnail, 'json', ['groups' => ['media']]), true) : null;
+            $children = $category->getChildren();
+            $childrenArray = [];
+            foreach ($children as $child) {
+                $childThumbnail = null;
+                $childMedias = $mediaRepository->findBy(['entityType' => 'category', 'entityId' => $child->getId()]);
+                foreach ($childMedias as $media) {
+                    if ($media->getMediaType() && $media->getMediaType()->getSlug() === 'thumbnail') {
+                        $childThumbnail = $media;
+                        break;
+                    }
+                }
+                $childData = json_decode($serializer->serialize($child, 'json', ['groups' => ['category', 'children']]), true);
+                $childData['thumbnail'] = $childThumbnail ? json_decode($serializer->serialize($childThumbnail, 'json', ['groups' => ['media']]), true) : null;
+                $childrenArray[] = $childData;
+            }
+            $catData['children'] = $childrenArray;
+            $categoriesArray[] = $catData;
+        }
+        return new JsonResponse($categoriesArray, Response::HTTP_OK);
     }
 
     #[Route('api/public/v1/product-category/{id}', name: 'api_get_product_category', methods: ['GET'])]
@@ -141,13 +200,38 @@ final class ProductCategoryController extends AbstractController
         response: 404,
         description: 'Product category not found'
     )]
-    public function get(ProductCategory $category = null, SerializerInterface $serializer): JsonResponse
+    public function get(ProductCategory $category = null, SerializerInterface $serializer, MediaRepository $mediaRepository): JsonResponse
     {
         if (!$category) {
             return new JsonResponse(['error' => 'Catégorie non trouvée'], Response::HTTP_NOT_FOUND);
         }
-        $jsonData = $serializer->serialize($category, 'json', ['groups' => ['category', 'children']]);
-        return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
+        $thumbnail = null;
+        $medias = $mediaRepository->findBy(['entityType' => 'category', 'entityId' => $category->getId()]);
+        foreach ($medias as $media) {
+            if ($media->getMediaType() && $media->getMediaType()->getSlug() === 'thumbnail') {
+                $thumbnail = $media;
+                break;
+            }
+        }
+        $catData = json_decode($serializer->serialize($category, 'json', ['groups' => ['category', 'children']]), true);
+        $catData['thumbnail'] = $thumbnail ? json_decode($serializer->serialize($thumbnail, 'json', ['groups' => ['media']]), true) : null;
+        $children = $category->getChildren();
+        $childrenArray = [];
+        foreach ($children as $child) {
+            $childThumbnail = null;
+            $childMedias = $mediaRepository->findBy(['entityType' => 'category', 'entityId' => $child->getId()]);
+            foreach ($childMedias as $media) {
+                if ($media->getMediaType() && $media->getMediaType()->getSlug() === 'thumbnail') {
+                    $childThumbnail = $media;
+                    break;
+                }
+            }
+            $childData = json_decode($serializer->serialize($child, 'json', ['groups' => ['category', 'children']]), true);
+            $childData['thumbnail'] = $childThumbnail ? json_decode($serializer->serialize($childThumbnail, 'json', ['groups' => ['media']]), true) : null;
+            $childrenArray[] = $childData;
+        }
+        $catData['children'] = $childrenArray;
+        return new JsonResponse($catData, Response::HTTP_OK);
     }
 
     #[Route('api/v1/product-category', name: 'api_create_product_category', methods: ['POST'])]
@@ -316,10 +400,39 @@ final class ProductCategoryController extends AbstractController
             items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
         )
     )]
-    public function getParents(ProductCategory $category, SerializerInterface $serializer): JsonResponse
+    public function getParents(ProductCategory $category, SerializerInterface $serializer, MediaRepository $mediaRepository): JsonResponse
     {
         $parents = $category->getParents();
-        $jsonData = $serializer->serialize($parents, 'json', ['groups' => ['category']]);
-        return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
+        $parentsArray = [];
+        foreach ($parents as $parent) {
+            $thumbnail = null;
+            $medias = $mediaRepository->findBy(['entityType' => 'category', 'entityId' => $parent->getId()]);
+            foreach ($medias as $media) {
+                if ($media->getMediaType() && $media->getMediaType()->getSlug() === 'thumbnail') {
+                    $thumbnail = $media;
+                    break;
+                }
+            }
+            $parentData = json_decode($serializer->serialize($parent, 'json', ['groups' => ['category']]), true);
+            $parentData['thumbnail'] = $thumbnail ? json_decode($serializer->serialize($thumbnail, 'json', ['groups' => ['media']]), true) : null;
+            $children = $parent->getChildren();
+            $childrenArray = [];
+            foreach ($children as $child) {
+                $childThumbnail = null;
+                $childMedias = $mediaRepository->findBy(['entityType' => 'category', 'entityId' => $child->getId()]);
+                foreach ($childMedias as $media) {
+                    if ($media->getMediaType() && $media->getMediaType()->getSlug() === 'thumbnail') {
+                        $childThumbnail = $media;
+                        break;
+                    }
+                }
+                $childData = json_decode($serializer->serialize($child, 'json', ['groups' => ['category']]), true);
+                $childData['thumbnail'] = $childThumbnail ? json_decode($serializer->serialize($childThumbnail, 'json', ['groups' => ['media']]), true) : null;
+                $childrenArray[] = $childData;
+            }
+            $parentData['children'] = $childrenArray;
+            $parentsArray[] = $parentData;
+        }
+        return new JsonResponse($parentsArray, Response::HTTP_OK);
     }
 }
