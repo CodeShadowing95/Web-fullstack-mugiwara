@@ -16,6 +16,22 @@ class FarmRepository extends ServiceEntityRepository
         parent::__construct($registry, Farm::class);
     }
 
+    /**
+     * @param int $farmerId
+     * @return Farm[]
+     */
+    public function findByFarmerId(int $farmerId): array
+    {
+        return $this->createQueryBuilder('f')
+            ->join('f.farmUsers', 'fu')
+            ->join('fu.user', 'u')
+            ->andWhere('u.id = :farmerId')
+            ->setParameter('farmerId', $farmerId)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
     //    /**
     //     * @return Farm[] Returns an array of Farm objects
     //     */

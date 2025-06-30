@@ -9,3 +9,7 @@ auth {
 vars:pre-request {
   baseUrl: https://localhost
 }
+
+script:post-response {
+  bru.setEnvVar("jwt_token",res.body.token);
+}

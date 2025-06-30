@@ -110,7 +110,7 @@ class Farm
     /**
      * @var Collection<int, FarmUser>
      */
-    #[ORM\OneToMany(targetEntity: FarmUser::class, mappedBy: 'farm_id')]
+    #[ORM\OneToMany(targetEntity: FarmUser::class, mappedBy: 'farm')]
     private Collection $farmUsers;
 
     #[ORM\Column(length: 5)]
@@ -200,8 +200,38 @@ class Farm
         return $this->coordinates;
     }
 
-    public function setCoordinates(array $coordinates): static
+    /**
+     * @return Collection<int, FarmUser>
+     */
+    public function getFarmUsers(): Collection
     {
+        return $this->farmUsers;
+    }
+
+    public function addFarmUser(FarmUser $farmUser): static
+    {
+        if (!$this->farmUsers->contains($farmUser)) {
+            $this->farmUsers->add($farmUser);
+            $farmUser->setFarm($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFarmUser(FarmUser $farmUser): static
+    {
+        if ($this->farmUsers->removeElement($farmUser)) {
+            // set the owning side to null (unless already changed)
+            if ($farmUser->getFarm() === $this) {
+                $farmUser->setFarm(null);
+            }
+        }
+
+        return $this;
+     }
+
+     public function setCoordinates(array $coordinates): static
+     {
         $this->coordinates = $coordinates;
         return $this;
     }
@@ -354,35 +384,7 @@ class Farm
     //     return $this;
     // }
 
-    /**
-     * @return Collection<int, FarmUser>
-     */
-    public function getFarmUsers(): Collection
-    {
-        return $this->farmUsers;
-    }
-
-    public function addFarmUser(FarmUser $farmUser): static
-    {
-        if (!$this->farmUsers->contains($farmUser)) {
-            $this->farmUsers->add($farmUser);
-            $farmUser->setFarm($this);
-        }
-
-        return $this;
-    }
-
-    public function removeFarmUser(FarmUser $farmUser): static
-    {
-        if ($this->farmUsers->removeElement($farmUser)) {
-            // set the owning side to null (unless already changed)
-            if ($farmUser->getFarm() === $this) {
-                $farmUser->setFarm(null);
-            }
-        }
-
-        return $this;
-    }
+    
 
     public function getZipCode(): ?string
     {

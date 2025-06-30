@@ -23,6 +23,29 @@ use App\Repository\FarmTypeRepository;
 
 final class FarmController extends AbstractController
 {
+    #[Route('api/public/v1/farms/farmer/{id}', name: 'api_get_farms_by_farmer', methods: ['GET'])]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID du fermier',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne la liste des fermes appartenant au fermier',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Farm::class, groups: ['farm','stats']))
+        )
+    )]
+    public function getFarmsByFarmer(int $id, FarmRepository $farmRepository, SerializerInterface $serializer): JsonResponse
+    {
+        $farms = $farmRepository->findByFarmerId($id);
+        $jsonData = $serializer->serialize($farms, 'json', ['groups' => ['farm', 'stats']]);
+        return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
+    }
+
     #[Route('api/public/v1/farms', name: 'api_get_all_farm', methods: ['GET'])]
     #[OA\Response(
         response: 200,
@@ -70,7 +93,7 @@ final class FarmController extends AbstractController
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
-    #[Route('api/v1/farm', name: 'api_create_farm', methods: ['POST'])]
+    #[Route('api/v1/create-farm', name: 'api_create_farm', methods: ['POST'])]
     #[OA\RequestBody(
         description: 'Farm data',
         required: true,
