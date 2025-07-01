@@ -18,12 +18,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Repository\MediaRepository;
 
-
-#[OA\Info(
-    version: "1.0.0",
-    description: "API for managing product categories",
-    title: "Product Categories API"
-)]
 final class ProductCategoryController extends AbstractController
 {
     #[Route('api/public/v1/product-category/{id}/children', name: 'api_get_category_children', methods: ['GET'])]
@@ -31,16 +25,25 @@ final class ProductCategoryController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of parent category',
+        description: 'ID de la catégorie parente',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Response(
         response: 200,
-        description: 'Returns all child categories',
+        description: 'Retourne toutes les sous-catégories (enfants et petits-enfants)',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
+            items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category', 'category_details']))
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Catégorie non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Catégorie non trouvée')
+            ]
         )
     )]
     public function getChildren(ProductCategory $category = null, SerializerInterface $serializer, MediaRepository $mediaRepository): JsonResponse
@@ -87,20 +90,21 @@ final class ProductCategoryController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of category',
+        description: 'ID de la catégorie',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Parameter(
         name: 'parentId',
         in: 'path',
-        description: 'ID of parent category',
+        description: 'ID de la catégorie parente',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Response(
         response: 200,
-        description: 'Parent category set successfully'
+        description: 'Catégorie parente définie avec succès',
+        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class, groups: ['category', 'category_details']))
     )]
     public function setParent(
         ProductCategory $category,
@@ -121,13 +125,13 @@ final class ProductCategoryController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of category',
+        description: 'ID de la catégorie',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Response(
         response: 204,
-        description: 'Parent category removed successfully'
+        description: 'Catégorie parente supprimée avec succès'
     )]
     public function removeParent(ProductCategory $category, EntityManagerInterface $em): JsonResponse
     {
@@ -137,15 +141,15 @@ final class ProductCategoryController extends AbstractController
     }
 
     #[Route('api/public/v1/product-categories', name: 'api_get_all_product_categories', methods: ['GET'])]
+    #[OA\Tag(name: 'Product Categories')]
     #[OA\Response(
         response: 200,
-        description: 'Returns all product categories',
+        description: 'Retourne toutes les catégories racines (et leurs enfants)',
         content: new OA\JsonContent(
             type: 'array',
-            items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))
+            items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category', 'children']))
         )
     )]
-    #[OA\Tag(name: 'Product Categories')]
     public function getAll(ProductCategoryRepository $repository, SerializerInterface $serializer, MediaRepository $mediaRepository): JsonResponse
     {
         $categories = $repository->findBy(['categoryParent' => null], ['name' => 'ASC']);
@@ -187,18 +191,23 @@ final class ProductCategoryController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of product category',
+        description: 'ID de la catégorie',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Response(
         response: 200,
-        description: 'Returns a product category with its products',
-        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class, groups: ['category', 'category_details', 'children']))
+        description: 'Retourne une catégorie avec ses enfants',
+        content: new OA\JsonContent(ref: new Model(type: ProductCategory::class, groups: ['category', 'children']))
     )]
     #[OA\Response(
         response: 404,
-        description: 'Product category not found'
+        description: 'Catégorie non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Catégorie non trouvée')
+            ]
+        )
     )]
     public function get(ProductCategory $category = null, SerializerInterface $serializer, MediaRepository $mediaRepository): JsonResponse
     {
@@ -237,23 +246,29 @@ final class ProductCategoryController extends AbstractController
     #[Route('api/v1/product-category', name: 'api_create_product_category', methods: ['POST'])]
     #[OA\Tag(name: 'Product Categories')]
     #[OA\RequestBody(
-        description: 'Product category data',
+        description: 'Données de la catégorie à créer',
         required: true,
         content: new OA\JsonContent(
+            required: ['name'],
             properties: [
                 new OA\Property(property: 'name', type: 'string', example: 'Fruits'),
-                new OA\Property(property: 'description', type: 'string', example: 'Fresh fruits category')
+                new OA\Property(property: 'description', type: 'string', example: 'Catégorie de fruits frais')
             ]
         )
     )]
     #[OA\Response(
         response: 201,
-        description: 'Product category created successfully',
+        description: 'Catégorie créée avec succès',
         content: new OA\JsonContent(ref: new Model(type: ProductCategory::class, groups: ['category']))
     )]
     #[OA\Response(
         response: 400,
-        description: 'Invalid input'
+        description: 'Entrée invalide',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Erreur de validation')
+            ]
+        )
     )]
     public function create(
         Request $request,
@@ -284,31 +299,41 @@ final class ProductCategoryController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of product category to update',
+        description: 'ID de la catégorie à mettre à jour',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\RequestBody(
-        description: 'Fields to update',
+        description: 'Champs à mettre à jour',
         required: true,
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'name', type: 'string', example: 'Updated Fruits'),
-                new OA\Property(property: 'description', type: 'string', example: 'Updated description')
+                new OA\Property(property: 'name', type: 'string', example: 'Fruits modifiés'),
+                new OA\Property(property: 'description', type: 'string', example: 'Description modifiée')
             ]
         )
     )]
     #[OA\Response(
         response: 204,
-        description: 'Product category updated successfully'
+        description: 'Catégorie mise à jour avec succès'
     )]
     #[OA\Response(
         response: 400,
-        description: 'Invalid input'
+        description: 'Entrée invalide',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Erreur de validation')
+            ]
+        )
     )]
     #[OA\Response(
         response: 404,
-        description: 'Product category not found'
+        description: 'Catégorie non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Catégorie non trouvée')
+            ]
+        )
     )]
     public function update(
         ProductCategory $category,
@@ -339,17 +364,22 @@ final class ProductCategoryController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of product category to delete',
+        description: 'ID de la catégorie à supprimer',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Response(
         response: 204,
-        description: 'Product category deleted successfully'
+        description: 'Catégorie supprimée avec succès'
     )]
     #[OA\Response(
         response: 404,
-        description: 'Product category not found'
+        description: 'Catégorie non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Catégorie non trouvée')
+            ]
+        )
     )]
     public function delete(ProductCategory $category, EntityManagerInterface $em): JsonResponse
     {
@@ -388,13 +418,13 @@ final class ProductCategoryController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of parent category',
+        description: 'ID de la catégorie',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Response(
         response: 200,
-        description: 'Returns all parent categories',
+        description: 'Retourne toutes les catégories parentes',
         content: new OA\JsonContent(
             type: 'array',
             items: new OA\Items(ref: new Model(type: ProductCategory::class, groups: ['category']))

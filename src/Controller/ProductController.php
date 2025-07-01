@@ -30,10 +30,19 @@ final class ProductController extends AbstractController
     #[OA\Tag(name: 'Products')]
     #[OA\Response(
         response: 200,
-        description: 'Returns all products',
+        description: 'Retourne tous les produits',
         content: new OA\JsonContent(
             type: 'array',
             items: new OA\Items(ref: new Model(type: Product::class, groups: ['product', 'product_details']))
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Aucun produit trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Aucun produit trouvé')
+            ]
         )
     )]
     #[IsGranted('PUBLIC_ACCESS')]
@@ -66,14 +75,23 @@ final class ProductController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of product',
+        description: 'ID du produit',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Response(
         response: 200,
-        description: 'Returns a product with its details',
+        description: 'Retourne un produit avec ses détails',
         content: new OA\JsonContent(ref: new Model(type: Product::class, groups: ['product', 'product_details']))
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Produit non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Produit non trouvé')
+            ]
+        )
     )]
     public function get(Product $product, SerializerInterface $serializer, EntityManagerInterface $em): JsonResponse
     {
@@ -99,21 +117,32 @@ final class ProductController extends AbstractController
     #[Route('api/public/v1/product', name: 'api_create_product', methods: ['POST'])]
     #[OA\Tag(name: 'Products')]
     #[OA\RequestBody(
-        description: 'Product data',
+        description: 'Données du produit',
         required: true,
         content: new OA\JsonContent(
+            required: ['name', 'quantity', 'price', 'unitPrice', 'categories'],
             properties: [
-                new OA\Property(property: 'name', type: 'string'),
-                new OA\Property(property: 'quantity', type: 'integer'),
-                new OA\Property(property: 'price', type: 'number'),
-                new OA\Property(property: 'unitPrice', type: 'number'),
-                new OA\Property(property: 'categories', type: 'array', items: new OA\Items(type: 'integer'))
+                new OA\Property(property: 'name', type: 'string', example: 'Tomate'),
+                new OA\Property(property: 'quantity', type: 'integer', example: 10),
+                new OA\Property(property: 'price', type: 'number', example: 2.5),
+                new OA\Property(property: 'unitPrice', type: 'number', example: 0.25),
+                new OA\Property(property: 'categories', type: 'array', items: new OA\Items(type: 'integer'), example: [1,2])
             ]
         )
     )]
     #[OA\Response(
         response: 201,
-        description: 'Product created successfully'
+        description: 'Produit créé avec succès',
+        content: new OA\JsonContent(ref: new Model(type: Product::class, groups: ['product']))
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Entrée invalide',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Invalid data format')
+            ]
+        )
     )]
     public function create(
         Request $request,
@@ -157,13 +186,44 @@ final class ProductController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of product to update',
+        description: 'ID du produit à mettre à jour',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
+    #[OA\RequestBody(
+        description: 'Champs à mettre à jour',
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'name', type: 'string', example: 'Tomate cerise'),
+                new OA\Property(property: 'quantity', type: 'integer', example: 20),
+                new OA\Property(property: 'price', type: 'number', example: 3.0),
+                new OA\Property(property: 'unitPrice', type: 'number', example: 0.15),
+                new OA\Property(property: 'categories', type: 'array', items: new OA\Items(type: 'integer'), example: [1])
+            ]
+        )
+    )]
     #[OA\Response(
         response: 204,
-        description: 'Product updated successfully'
+        description: 'Produit mis à jour avec succès'
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Entrée invalide',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Erreur de validation')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Produit non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Produit non trouvé')
+            ]
+        )
     )]
     public function update(
         Product $product,
@@ -200,13 +260,22 @@ final class ProductController extends AbstractController
     #[OA\Parameter(
         name: 'id',
         in: 'path',
-        description: 'ID of product to delete',
+        description: 'ID du produit à supprimer',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Response(
         response: 204,
-        description: 'Product deleted successfully'
+        description: 'Produit supprimé avec succès'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Produit non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Produit non trouvé')
+            ]
+        )
     )]
     public function delete(Product $product, EntityManagerInterface $em): JsonResponse
     {

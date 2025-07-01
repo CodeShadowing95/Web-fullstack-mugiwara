@@ -17,6 +17,8 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTDecodeFailureException;
+use OpenApi\Attributes as OA;
+use Nelmio\ApiDocBundle\Attribute\Model;
 
 class ReviewController extends AbstractController
 {
@@ -28,6 +30,15 @@ class ReviewController extends AbstractController
     ) {}
 
     #[Route('/api/public/v1/reviews', name: 'api_get_all_reviews', methods: ['GET'])]
+    #[OA\Tag(name: 'Reviews')]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne toutes les reviews',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Review::class, groups: ['review']))
+        )
+    )]
     public function index(ReviewRepository $reviewRepository): JsonResponse
     {
         $reviews = $reviewRepository->findAll();
@@ -38,6 +49,31 @@ class ReviewController extends AbstractController
     }
 
     #[Route('/api/public/v1/product/{id}/reviews', name: 'api_get_product_reviews', methods: ['GET'])]
+    #[OA\Tag(name: 'Reviews')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID du produit',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne les reviews d\'un produit',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Review::class, groups: ['product_reviews']))
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Produit non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Produit non trouvé')
+            ]
+        )
+    )]
     public function getProductReviews(int $id, ReviewRepository $reviewRepository): JsonResponse
     {
         $reviews = $reviewRepository->findByProduct($id);
@@ -48,6 +84,24 @@ class ReviewController extends AbstractController
     }
 
     #[Route('/api/public/v1/user/reviews', name: 'api_get_user_reviews', methods: ['GET'])]
+    #[OA\Tag(name: 'Reviews')]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne les reviews de l\'utilisateur courant',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Review::class, groups: ['review']))
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Utilisateur non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Utilisateur non authentifié')
+            ]
+        )
+    )]
     public function getUserReviews(Request $request, ReviewRepository $reviewRepository): JsonResponse
     {
         $user = $this->getUserFromToken($request);
@@ -64,6 +118,61 @@ class ReviewController extends AbstractController
     }
 
     #[Route('/api/public/v1/review', name: 'api_create_review', methods: ['POST'])]
+    #[OA\Tag(name: 'Reviews')]
+    #[OA\RequestBody(
+        description: 'Données de la review',
+        required: true,
+        content: new OA\JsonContent(
+            required: ['productId', 'comment', 'rating'],
+            properties: [
+                new OA\Property(property: 'productId', type: 'integer', example: 1),
+                new OA\Property(property: 'comment', type: 'string', example: 'Super produit !'),
+                new OA\Property(property: 'rating', type: 'integer', example: 5)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Review créée avec succès',
+        content: new OA\JsonContent(ref: new Model(type: Review::class, groups: ['review']))
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Données manquantes ou invalides',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Données manquantes'),
+                new OA\Property(property: 'errors', type: 'array', items: new OA\Items(type: 'string'), example: ['Le commentaire ne peut pas être vide'])
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Utilisateur non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Utilisateur non authentifié')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Produit non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Produit non trouvé')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 409,
+        description: 'Review déjà existante',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Vous avez déjà laissé une review pour ce produit')
+            ]
+        )
+    )]
     public function create(Request $request, ProductRepository $productRepository): JsonResponse
     {
         $user = $this->getUserFromToken($request);
@@ -117,6 +226,28 @@ class ReviewController extends AbstractController
     }
 
     #[Route('/api/public/v1/review/{id}', name: 'api_get_review', methods: ['GET'])]
+    #[OA\Tag(name: 'Reviews')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de la review',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne une review',
+        content: new OA\JsonContent(ref: new Model(type: Review::class, groups: ['review']))
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Review non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Review non trouvée')
+            ]
+        )
+    )]
     public function show(int $id, ReviewRepository $reviewRepository): JsonResponse
     {
         $review = $reviewRepository->find($id);
@@ -131,6 +262,65 @@ class ReviewController extends AbstractController
     }
 
     #[Route('/api/public/v1/review/{id}', name: 'api_update_review', methods: ['PUT'])]
+    #[OA\Tag(name: 'Reviews')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de la review à modifier',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\RequestBody(
+        description: 'Champs à modifier',
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'comment', type: 'string', example: 'Nouveau commentaire'),
+                new OA\Property(property: 'rating', type: 'integer', example: 4)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Review modifiée avec succès',
+        content: new OA\JsonContent(ref: new Model(type: Review::class, groups: ['review']))
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Données invalides',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'errors', type: 'array', items: new OA\Items(type: 'string'), example: ['Le commentaire ne peut pas être vide'])
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Utilisateur non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Utilisateur non authentifié')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Accès non autorisé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Accès non autorisé')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Review non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Review non trouvée')
+            ]
+        )
+    )]
     public function update(int $id, Request $request, ReviewRepository $reviewRepository): JsonResponse
     {
         $user = $this->getUserFromToken($request);
@@ -178,6 +368,50 @@ class ReviewController extends AbstractController
     }
 
     #[Route('/api/public/v1/review/{id}', name: 'api_delete_review', methods: ['DELETE'])]
+    #[OA\Tag(name: 'Reviews')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de la review à supprimer',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Review supprimée avec succès',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'message', type: 'string', example: 'Review supprimée avec succès')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Utilisateur non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Utilisateur non authentifié')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Accès non autorisé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Accès non autorisé')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Review non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Review non trouvée')
+            ]
+        )
+    )]
     public function delete(int $id, Request $request, ReviewRepository $reviewRepository): JsonResponse
     {
         $user = $this->getUserFromToken($request);

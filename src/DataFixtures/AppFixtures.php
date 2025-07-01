@@ -343,13 +343,16 @@ class AppFixtures extends Fixture
             $farm->setName($this->faker->company);
             $farm->setDescription($this->faker->text(100));
             $farm->setAddress($this->faker->address);
+            // Générer des coordonnées GPS en France métropolitaine
+            $lat = $this->faker->randomFloat(6, 41.3, 51.1);
+            $lng = $this->faker->randomFloat(6, -5.2, 9.7);
+            $farm->setCoordinates([
+                'lat' => $lat,
+                'lng' => $lng
+            ]);
             $farm->setCity($this->faker->city);
             $farm->setZipCode($this->faker->postcode);
             $farm->setRegion($this->faker->region);
-            $farm->setCoordinates([
-                'lat' => $this->faker->latitude,
-                'lng' => $this->faker->longitude
-            ]);
             $farm->setPhone($this->faker->phoneNumber);
             $farm->setEmail($this->faker->companyEmail);
             $farm->setWebsite($this->faker->url);

@@ -16,11 +16,27 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
+use OpenApi\Attributes as OA;
 
 #[Route('/api')]
 class CartController extends AbstractController
 {
     #[Route('/cart', name: 'cart_show', methods: ['GET'])]
+    #[OA\Tag(name: 'Cart')]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne le panier de l\'utilisateur',
+        content: new OA\JsonContent(type: 'object')
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Vous devez être connecté pour accéder au panier')
+            ]
+        )
+    )]
     public function show(
         CartRepository $cartRepository,
         SerializerInterface $serializer
@@ -54,6 +70,56 @@ class CartController extends AbstractController
     }
 
     #[Route('/cart/items', name: 'cart_add_item', methods: ['POST'])]
+    #[OA\Tag(name: 'Cart')]
+    #[OA\RequestBody(
+        description: 'Ajoute un article au panier',
+        required: true,
+        content: new OA\JsonContent(
+            required: ['productId'],
+            properties: [
+                new OA\Property(property: 'productId', type: 'integer', example: 1),
+                new OA\Property(property: 'quantity', type: 'integer', example: 2)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Article ajouté au panier',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'message', type: 'string', example: 'Item added to cart successfully'),
+                new OA\Property(property: 'cartItemId', type: 'integer', example: 10),
+                new OA\Property(property: 'quantity', type: 'integer', example: 2)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Erreur de validation',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Product ID is required')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Vous devez être connecté pour ajouter des articles au panier')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Produit non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Product not found')
+            ]
+        )
+    )]
     public function addItem(
         Request $request,
         CartRepository $cartRepository,
@@ -116,6 +182,71 @@ class CartController extends AbstractController
     }
 
     #[Route('/cart/items/{id}', name: 'cart_update_item', methods: ['PUT'])]
+    #[OA\Tag(name: 'Cart')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de l\'article du panier',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\RequestBody(
+        description: 'Met à jour la quantité d\'un article du panier',
+        required: true,
+        content: new OA\JsonContent(
+            required: ['quantity'],
+            properties: [
+                new OA\Property(property: 'quantity', type: 'integer', example: 3)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Quantité de l\'article mise à jour',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'message', type: 'string', example: 'Item quantity updated to cart successfully'),
+                new OA\Property(property: 'cartItemId', type: 'integer', example: 10),
+                new OA\Property(property: 'quantity', type: 'integer', example: 3)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Erreur de validation',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Valid quantity is required')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Vous devez être connecté pour modifier le panier')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Accès refusé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Access denied')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Article du panier non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Cart item not found')
+            ]
+        )
+    )]
     public function updateItem(
         int $id,
         Request $request,
@@ -161,6 +292,50 @@ class CartController extends AbstractController
     }
 
     #[Route('/cart/items/{id}', name: 'cart_remove_item', methods: ['DELETE'])]
+    #[OA\Tag(name: 'Cart')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de l\'article du panier à supprimer',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Article supprimé du panier',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'message', type: 'string', example: 'Item removed from cart')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Vous devez être connecté pour supprimer des articles du panier')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Accès refusé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Access denied')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Article du panier non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Cart item not found')
+            ]
+        )
+    )]
     public function removeItem(
         int $id,
         CartItemRepository $cartItemRepository,

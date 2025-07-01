@@ -6,6 +6,7 @@ use App\Repository\ReviewRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use OpenApi\Attributes\Property;
 
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: ReviewRepository::class)]
@@ -54,6 +55,10 @@ class Review
 
     #[ORM\Column]
     #[Groups(["review", "product_reviews"])]
+    /**
+     * @var \DateTimeImmutable|null
+     */
+    #[\OpenApi\Attributes\Property(type: "string", format: "date-time", nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
