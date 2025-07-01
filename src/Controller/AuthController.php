@@ -44,34 +44,28 @@ class AuthController extends AbstractController
         response: 201,
         description: 'Utilisateur créé et connecté avec succès',
         content: new OA\JsonContent(
-            schema: new OA\Schema(
-                properties: [
-                    new OA\Property(property: 'token', type: 'string', example: 'eyJ0eXAiOiJKV1QiLCJhbGciOi...'),
-                    new OA\Property(property: 'message', type: 'string', example: 'Utilisateur créé et connecté avec succès')
-                ]
-            )
+            properties: [
+                new OA\Property(property: 'token', type: 'string', example: 'eyJ0eXAiOiJKV1QiLCJhbGciOi...'),
+                new OA\Property(property: 'message', type: 'string', example: 'Utilisateur créé et connecté avec succès')
+            ]
         )
     )]
     #[OA\Response(
         response: 400,
         description: 'Champs manquants ou format invalide',
         content: new OA\JsonContent(
-            schema: new OA\Schema(
-                properties: [
-                    new OA\Property(property: 'error', type: 'string', example: 'Champs manquants')
-                ]
-            )
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Champs manquants')
+            ]
         )
     )]
     #[OA\Response(
         response: 409,
         description: 'Email déjà utilisé',
         content: new OA\JsonContent(
-            schema: new OA\Schema(
-                properties: [
-                    new OA\Property(property: 'error', type: 'string', example: 'Email déjà utilisé')
-                ]
-            )
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Email déjà utilisé')
+            ]
         )
     )]
     public function register(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $jwtManager): JsonResponse
@@ -124,18 +118,16 @@ class AuthController extends AbstractController
         response: 200,
         description: 'Retourne l\'utilisateur courant',
         content: new OA\JsonContent(
-            schema: new OA\Schema(type: 'object')
+            type: 'object'
         )
     )]
     #[OA\Response(
         response: 401,
         description: 'Non authentifié',
         content: new OA\JsonContent(
-            schema: new OA\Schema(
-                properties: [
-                    new OA\Property(property: 'error', type: 'string', example: 'Non authentifié')
-                ]
-            )
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Non authentifié')
+            ]
         )
     )]
     public function getCurrentUser(Security $security): JsonResponse
@@ -156,18 +148,16 @@ class AuthController extends AbstractController
         response: 200,
         description: 'L\'utilisateur est maintenant un fermier',
         content: new OA\JsonContent(
-            schema: new OA\Schema(type: 'object')
+            type: 'object'
         )
     )]
     #[OA\Response(
         response: 401,
         description: 'Non authentifié',
         content: new OA\JsonContent(
-            schema: new OA\Schema(
-                properties: [
-                    new OA\Property(property: 'error', type: 'string', example: 'Non authentifié')
-                ]
-            )
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Non authentifié')
+            ]
         )
     )]
     public function becomeFarmer(Request $request, Security $security, EntityManagerInterface $em): JsonResponse
