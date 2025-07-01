@@ -1,7 +1,7 @@
 nelmio_api_doc:
     documentation:
         info:
-            title: Atelier du Bien etre
+            title: CocotteConnect
             description: l'API du site
             version: 2.0.0
         paths:
@@ -35,9 +35,9 @@ nelmio_api_doc:
                 Credentials:
                     type: object
                     properties:
-                        uuid:
+                        email:
                             type: string
-                            default: "1"
+                            example: "user@email.com"
                         password:
                             type: string
                             default: password

@@ -106,12 +106,112 @@ class AppFixtures extends Fixture
             ]
         ];
 
+        $mediaTypes = [];
+        $mediaTypesData = [
+            [
+                'name' => 'image',
+                'slug' => 'image'
+            ],
+            [
+                'name' => 'thumbnail',
+                'slug' => 'thumbnail'
+            ],
+            [
+                'name' => 'banner',
+                'slug' => 'banner'
+            ],
+            [
+                'name' => 'logo',
+                'slug' => 'logo'
+            ],
+            [
+                'name' => 'document',
+                'slug' => 'document'
+            ]
+        ];
+
+        foreach ($mediaTypesData as $mediaTypeData) {
+            $mediaType = new MediaType();
+            $mediaType->setName($mediaTypeData["name"]);
+            $mediaType->setSlug($mediaTypeData["slug"]);
+            $manager->persist($mediaType);
+            $mediaTypes[] = $mediaType;
+        }
+
+        $mediaTypesBySlug = [];
+        foreach ($mediaTypes as $mediaType) {
+            $mediaTypesBySlug[$mediaType->getSlug()] = $mediaType;
+        }
+
+        // Tableau associatif pour lier manuellement les catégories à leurs images
+        $categoryImages = [
+            // Parents
+            "Fruits & Légumes de saison" => "legumes-fruits.png",
+            "Viandes & Produits Animaux" => "fromage.png",
+            "Produits Laitiers" => "lait.webp",
+            "Boulangerie & Pâtisserie" => "brioche.webp",
+            "Produits Transformés" => "confiture.png",
+            "Plantes & Jardin" => "terraux.png",
+            "Boissons Artisanales" => "jus-pommes.png",
+            "Produits Artisanaux / Non-Alimentaires" => "savon.webp",
+            "Produits de saison" => "legumes-fruits.png",
+            "Légumes anciens" => "panais.png",
+            "Herbes fraîches" => "herbes.png",
+            "Fruits" => "fruits.webp",
+            "Viande" => "saucissons.jpg",
+            "Oeufs" => "oeufs.jpg",
+            "Produits transformés" => "beurre.png",
+            "Volaille prête à cuire" => "poulet.png",
+            "Lait cru ou pasteurisé" => "lait.webp",
+            "Fromages" => "fromage.png",
+            "Yaourts artisanaux" => "yaourt.png",
+            "Beurre, crème" => "beurre.png",
+            "Pain au levain" => "pain.png",
+            "Brioche" => "brioche.webp",
+            "Cookies" => "cookies.webp",
+            "Tarte rustique" => "tarte-pommes.avif",
+            "Confiture" => "confiture.png",
+            "Sauce tomate" => "sauce.png",
+            "Farine" => "farine.png",
+            "Basilic" => "basilic.png",
+            "Fleurs séchées" => "fleurs.png",
+            "Compost" => "terraux.png",
+            "Tomates cerise (plant)" => "plant-tomates.png",
+            "Jus de pomme" => "jus-pommes.png",
+            "Cidre" => "cidre.png",
+            "Bière blonde" => "bierres.png",
+            "Tisane" => "tisanne.png",
+            "Savon" => "savon.webp",
+            "Baume" => "baume.png",
+            "Bougie" => "bougie.png",
+            "Tissu brodé" => "tissu.webp",
+        ];
+
         foreach ($categoriesData as $categoryData) {
             $parentCategory = new ProductCategory();
             $parentCategory->setName($categoryData["categorie"]);
             $parentCategory->setDescription($this->faker->text(100));
             $manager->persist($parentCategory);
             $categories[] = $parentCategory;
+            $manager->flush(); // pour avoir l'ID
+            // Ajout image catégorie parent si existe (via tableau associatif)
+            $catImgFile = $categoryImages[$categoryData["categorie"]] ?? null;
+            if ($catImgFile) {
+                $catImgPath = 'media/seeders/categories/' . $catImgFile;
+                if (file_exists(__DIR__ . '/../../public/' . $catImgPath)) {
+                    $mediaThumb = new \App\Entity\Media();
+                    $mediaThumb->setRealName($catImgFile);
+                    $mediaThumb->setRealPath($catImgPath);
+                    $mediaThumb->setPublicPath($catImgPath);
+                    $mediaThumb->setMime(mime_content_type(__DIR__ . '/../../public/' . $catImgPath));
+                    $mediaThumb->setStatus('on');
+                    $mediaThumb->setUploadedAt(new \DateTime());
+                    $mediaThumb->setEntityType('category');
+                    $mediaThumb->setEntityId($parentCategory->getId());
+                    $mediaThumb->setMediaType(isset($mediaTypesBySlug['thumbnail']) ? $mediaTypesBySlug['thumbnail'] : null);
+                    $manager->persist($mediaThumb);
+                }
+            }
 
             // Créer les catégories enfants
             foreach ($categoryData["children"] as $childName) {
@@ -121,6 +221,25 @@ class AppFixtures extends Fixture
                 $childCategory->setCategoryParent($parentCategory);
                 $manager->persist($childCategory);
                 $categories[] = $childCategory;
+                $manager->flush();
+                // Ajout image catégorie enfant si existe (via tableau associatif)
+                $childImgFile = $categoryImages[$childName] ?? null;
+                if ($childImgFile) {
+                    $childImgPath = 'media/seeders/categories/' . $childImgFile;
+                    if (file_exists(__DIR__ . '/../../public/' . $childImgPath)) {
+                        $mediaThumb = new \App\Entity\Media();
+                        $mediaThumb->setRealName($childImgFile);
+                        $mediaThumb->setRealPath($childImgPath);
+                        $mediaThumb->setPublicPath($childImgPath);
+                        $mediaThumb->setMime(mime_content_type(__DIR__ . '/../../public/' . $childImgPath));
+                        $mediaThumb->setStatus('on');
+                        $mediaThumb->setUploadedAt(new \DateTime());
+                        $mediaThumb->setEntityType('category');
+                        $mediaThumb->setEntityId($childCategory->getId());
+                        $mediaThumb->setMediaType(isset($mediaTypesBySlug['thumbnail']) ? $mediaTypesBySlug['thumbnail'] : null);
+                        $manager->persist($mediaThumb);
+                    }
+                }
             }
         }
 
@@ -238,38 +357,6 @@ class AppFixtures extends Fixture
             $farmTypes[] = $farmType;
         }
 
-        $mediaTypes = [];
-        $mediaTypesData = [
-            [
-                'name' => 'image',
-                'slug' => 'image'
-            ],
-            [
-                'name' => 'thumbnail',
-                'slug' => 'thumbnail'
-            ],
-            [
-                'name' => 'banner',
-                'slug' => 'banner'
-            ],
-            [
-                'name' => 'logo',
-                'slug' => 'logo'
-            ],
-            [
-                'name' => 'document',
-                'slug' => 'document'
-            ]
-        ];
-
-        foreach ($mediaTypesData as $mediaTypeData) {
-            $mediaType = new MediaType();
-            $mediaType->setName($mediaTypeData["name"]);
-            $mediaType->setSlug($mediaTypeData["slug"]);
-            $manager->persist($mediaType);
-            $mediaTypes[] = $mediaType;
-        }
-
         // Créer ensuite les fermes
         $farms = [];
         for ($i = 0; $i <= 10; $i++) {
@@ -279,12 +366,15 @@ class AppFixtures extends Fixture
             $farm->setAddress($this->faker->address);
             $farm->setAvatar($this->faker->imageUrl(200, 200, 'farm'));
             $farm->setCity($this->faker->city);
+            // Générer des coordonnées GPS en France métropolitaine
+            $lat = $this->faker->randomFloat(6, 41.3, 51.1);
+            $lng = $this->faker->randomFloat(6, -5.2, 9.7);
+            $farm->setCoordinates([
+                'lat' => $lat,
+                'lng' => $lng
+            ]);
             $farm->setZipCode($this->faker->postcode);
             $farm->setRegion($this->faker->region);
-            $farm->setCoordinates([
-                'lat' => $this->faker->latitude,
-                'lng' => $this->faker->longitude
-            ]);
             $farm->setPhone($this->faker->phoneNumber);
             $farm->setEmail($this->faker->companyEmail);
             $farm->setWebsite($this->faker->url);
@@ -317,112 +407,419 @@ class AppFixtures extends Fixture
         // Créer ensuite les produits et les assigner aux fermes
         $products = [];
         $images = [
-            ['file' => 'flocon-avoines.jpg', 'name' => "Flocons d'avoine"],
-            ['file' => 'oeufs.jpg', 'name' => 'Oeufs'],
-            ['file' => 'saucissons.jpg', 'name' => 'Saucissons'],
-            ['file' => 'cornichons.jpg', 'name' => 'Cornichons'],
-            ['file' => 'aubergines.webp', 'name' => 'Aubergines'],
-            ['file' => 'peches.jpg', 'name' => 'Pêches'],
-            ['file' => 'tomates-2.jpg', 'name' => 'Tomates'],
-            ['file' => 'tomates.jpeg', 'name' => 'Tomates'],
-            ['file' => 'pommes.jpeg', 'name' => 'Pommes'],
-            ['file' => 'carrottes-2.jpeg', 'name' => 'Carottes'],
-            ['file' => 'carrottes.jpeg', 'name' => 'Carottes'],
-            ['file' => 'fraises.jpg', 'name' => 'Fraises'],
-            ['file' => 'poires.webp', 'name' => 'Poires'],
-            ['file' => 'abricots.webp', 'name' => 'Abricots'],
-            ['file' => 'cerises.webp', 'name' => 'Cerises'],
-            ['file' => 'prunes.webp', 'name' => 'Prunes'],
-            ['file' => 'navets.jpg', 'name' => 'Navets'],
-            ['file' => 'poirreaux.jpeg', 'name' => 'Poireaux'],
-            ['file' => 'radis.webp', 'name' => 'Radis'],
-            ['file' => 'salades.webp', 'name' => 'Salade'],
-            ['file' => 'courgettes.jpeg', 'name' => 'Courgettes'],
-            ['file' => 'comcombres.jpg', 'name' => 'Concombres'],
-            ['file' => 'oignons.webp', 'name' => 'Oignons'],
-            ['file' => 'ails.png', 'name' => 'Ail'],
-            ['file' => 'echalottes.jpg', 'name' => 'Échalotes'],
-            ['file' => 'pommeterres.jpeg', 'name' => 'Pommes de terre'],
-            ['file' => 'champigons.webp', 'name' => 'Champignons'],
-            ['file' => 'epinards.jpeg', 'name' => 'Épinards'],
-            ['file' => 'blettes.webp', 'name' => 'Blettes'],
-            ['file' => 'haricots-verts.jpg', 'name' => 'Haricots verts'],
-            ['file' => 'petits-pois.jpg', 'name' => 'Petits pois'],
-            ['file' => 'lentilles.jpg', 'name' => 'Lentilles'],
-            ['file' => 'pois-chiches.jpg', 'name' => 'Pois chiches'],
-            ['file' => 'noisettes.jpg', 'name' => 'Noisettes'],
-            ['file' => 'noix.jpg', 'name' => 'Noix'],
-            ['file' => 'amandes.jpg', 'name' => 'Amandes'],
-            ['file' => 'pistaches.jpg', 'name' => 'Pistaches'],
-            ['file' => 'fromage-chèvre.jpg', 'name' => 'Fromage de chèvre'],
-            ['file' => 'fromage-brebis.jpg', 'name' => 'Fromage de brebis'],
-            ['file' => 'fromage-vache.jpg', 'name' => 'Fromage de vache'],
-            ['file' => 'yaourt.jpg', 'name' => 'Yaourt'],
-            ['file' => 'beurre.jpg', 'name' => 'Beurre'],
-            ['file' => 'creme-fraiche.jpg', 'name' => 'Crème fraîche'],
-            ['file' => 'pain.jpg', 'name' => 'Pain'],
-            ['file' => 'brioche.jpg', 'name' => 'Brioche'],
-            ['file' => 'cookies.jpg', 'name' => 'Cookies'],
-            ['file' => 'tarte.jpg', 'name' => 'Tarte'],
-            ['file' => 'confiture.jpg', 'name' => 'Confiture'],
-            ['file' => 'sauce-tomate.jpg', 'name' => 'Sauce tomate'],
-            ['file' => 'farine.jpg', 'name' => 'Farine'],
-            ['file' => 'jus-pomme.jpg', 'name' => 'Jus de pomme'],
-            ['file' => 'cidre.jpg', 'name' => 'Cidre'],
-            ['file' => 'biere.jpg', 'name' => 'Bière'],
-            ['file' => 'tisane.jpg', 'name' => 'Tisane']
+            ['file' => 'flocon-avoines.jpg', 'name' => "250g Flocons d'avoine"],
+            ['file' => 'oeufs.jpg', 'name' => '6 Oeufs'],
+            ['file' => 'saucissons.jpg', 'name' => '1 Saucisson'],
+            ['file' => 'cornichons.jpg', 'name' => '100g Cornichons'],
+            ['file' => 'aubergines.webp', 'name' => '3 Aubergines'],
+            ['file' => 'peches.jpg', 'name' => '500g Pêches'],
+            ['file' => 'tomates-2.jpg', 'name' => '200g Tomates cerises'],
+            ['file' => 'tomates.jpeg', 'name' => '400g Tomates'],
+            ['file' => 'pommes.jpeg', 'name' => '500g Pommes'],
+            ['file' => 'carrottes-2.jpeg', 'name' => '600g Carottes'],
+            ['file' => 'carrottes.jpeg', 'name' => '300g Carottes'],
+            ['file' => 'fraises.jpg', 'name' => '400g Fraises'],
+            ['file' => 'poires.webp', 'name' => '800g Poires'],
+            ['file' => 'abricots.webp', 'name' => '400g Abricots'],
+            ['file' => 'cerises.webp', 'name' => '200g Cerises'],
+            ['file' => 'prunes.webp', 'name' => '700g Prunes'],
+            ['file' => 'navets.jpg', 'name' => '100g Navets'],
+            ['file' => 'poirreaux.jpeg', 'name' => '100g Poireaux'],
+            ['file' => 'radis.webp', 'name' => '200g Radis'],
+            ['file' => 'salades.webp', 'name' => '4 Salades'],
+            ['file' => 'courgettes.jpeg', 'name' => '400g Courgettes'],
+            ['file' => 'comcombres.jpg', 'name' => '300g Concombres'],
+            ['file' => 'oignons.webp', 'name' => '200g Oignons'],
+            ['file' => 'ails.png', 'name' => '100g Ail'],
+            ['file' => 'echalottes.jpg', 'name' => '200g Échalotes'],
+            ['file' => 'pommeterres.jpeg', 'name' => '800g Pommes de terre'],
+            ['file' => 'champigons.webp', 'name' => '300g Champignons'],
+            ['file' => 'epinards.jpeg', 'name' => '300g Épinards'],
+            ['file' => 'blettes.webp', 'name' => '400g Blettes'],
+            ['file' => 'haricots-verts.jpg', 'name' => '300g Haricots verts'],
+            ['file' => 'petits-pois.jpg', 'name' => '300g Petits pois'],
+            ['file' => 'lentilles.jpg', 'name' => '500g Lentilles'],
+            ['file' => 'pois-chiches.jpg', 'name' => '500g Pois chiches'],
+            ['file' => 'noisettes.jpg', 'name' => '200g Noisettes'],
+            ['file' => 'noix.jpg', 'name' => '200g Noix'],
+            ['file' => 'amandes.jpg', 'name' => '200g Amandes'],
+            ['file' => 'pistaches.jpg', 'name' => '200g Pistaches'],
+            ['file' => 'fromage-chèvre.jpg', 'name' => '200g Fromage de chèvre'],
+            ['file' => 'fromage-brebis.jpg', 'name' => '200g Fromage de brebis'],
+            ['file' => 'fromage-vache.jpg', 'name' => '200g Fromage de vache'],
+            ['file' => 'yaourt.jpg', 'name' => '4 Yaourts'],
+            ['file' => 'beurre.jpg', 'name' => '250g Beurre'],
+            ['file' => 'creme-fraiche.jpg', 'name' => '200g Crème fraîche'],
+            ['file' => 'pain.jpg', 'name' => '1 Pain (400g)'],
+            ['file' => 'brioche.jpg', 'name' => '1 Brioche (350g)'],
+            ['file' => 'cookies.jpg', 'name' => '4 Cookies (120g)'],
+            ['file' => 'tarte.jpg', 'name' => '1 Tarte (500g)'],
+            ['file' => 'confiture.jpg', 'name' => '250g Confiture'],
+            ['file' => 'sauce-tomate.jpg', 'name' => '350g Sauce tomate'],
+            ['file' => 'farine.jpg', 'name' => '1kg Farine'],
+            ['file' => 'jus-pomme.jpg', 'name' => '1L Jus de pomme'],
+            ['file' => 'cidre.jpg', 'name' => '75cl Cidre'],
+            ['file' => 'biere.jpg', 'name' => '33cl Bière'],
+            ['file' => 'tisane.jpg', 'name' => '20 sachets Tisane']
+        ];
+        $productDescriptions = [
+            "250g Flocons d'avoine" => [
+                'short' => "Flocons d'avoine riches en fibres, parfaits pour le petit-déjeuner.",
+                'long' => "Ces flocons d'avoine sont idéaux pour préparer un porridge nourrissant ou agrémenter vos recettes de pâtisserie. Source naturelle de fibres et de protéines, ils sont issus d'une agriculture locale et respectueuse de l'environnement."
+            ],
+            "6 Oeufs" => [
+                'short' => "Oeufs frais de poules élevées en plein air.",
+                'long' => "Nos oeufs proviennent de poules élevées en plein air, nourries sans OGM. Parfaits pour toutes vos préparations culinaires, ils garantissent fraîcheur et qualité supérieure."
+            ],
+            "1 Saucisson" => [
+                'short' => "Saucisson artisanal, recette traditionnelle.",
+                'long' => "Ce saucisson est fabriqué selon une recette artisanale, avec des ingrédients locaux et naturels. Idéal pour l'apéritif ou en accompagnement d'un plateau de fromages."
+            ],
+            "100g Cornichons" => [
+                'short' => "Cornichons croquants au vinaigre.",
+                'long' => "Nos cornichons sont récoltés à maturité puis préparés dans un vinaigre doux. Ils apportent une touche de fraîcheur et de croquant à vos plats et sandwichs."
+            ],
+            "3 Aubergines" => [
+                'short' => "Aubergines fraîches, parfaites pour la ratatouille.",
+                'long' => "Ces aubergines sont cultivées localement et cueillies à la main. Leur chair fondante est idéale pour les gratins, ratatouilles ou grillades estivales."
+            ],
+            "500g Pêches" => [
+                'short' => "Pêches juteuses et sucrées, cueillies à maturité.",
+                'long' => "Nos pêches sont récoltées à la main pour garantir une fraîcheur et une saveur incomparables. Parfaites en dessert ou en salade de fruits."
+            ],
+            "200g Tomates cerises" => [
+                'short' => "Tomates cerises croquantes et savoureuses.",
+                'long' => "Idéales pour l'apéritif ou en salade, ces tomates cerises sont cultivées sans pesticides et cueillies à la main."
+            ],
+            "400g Tomates" => [
+                'short' => "Tomates rouges mûres, goût authentique.",
+                'long' => "Ces tomates sont parfaites pour vos sauces, salades ou tartes. Issues d'une agriculture raisonnée."
+            ],
+            "500g Pommes" => [
+                'short' => "Pommes croquantes et sucrées.",
+                'long' => "Nos pommes sont cultivées localement et sélectionnées pour leur goût et leur fraîcheur. À croquer ou à cuisiner."
+            ],
+            "600g Carottes" => [
+                'short' => "Carottes fraîches, riches en vitamines.",
+                'long' => "Idéales râpées, en jus ou en accompagnement, nos carottes sont issues de l'agriculture locale."
+            ],
+            "300g Carottes" => [
+                'short' => "Carottes tendres et sucrées.",
+                'long' => "Parfaites pour les soupes, purées ou à croquer en snack sain."
+            ],
+            "400g Fraises" => [
+                'short' => "Fraises parfumées, cueillies à la main.",
+                'long' => "Nos fraises sont cultivées sans pesticides et récoltées à maturité pour un goût sucré et acidulé."
+            ],
+            "800g Poires" => [
+                'short' => "Poires juteuses et fondantes.",
+                'long' => "Idéales en dessert ou en salade de fruits, nos poires sont issues de vergers locaux."
+            ],
+            "400g Abricots" => [
+                'short' => "Abricots doux et parfumés.",
+                'long' => "Ces abricots sont parfaits pour les confitures, tartes ou à déguster nature."
+            ],
+            "200g Cerises" => [
+                'short' => "Cerises croquantes et sucrées.",
+                'long' => "Récoltées à la main, nos cerises sont idéales pour les desserts ou à savourer telles quelles."
+            ],
+            "700g Prunes" => [
+                'short' => "Prunes mûres et juteuses.",
+                'long' => "Parfaites pour les tartes, confitures ou à déguster en collation."
+            ],
+            "100g Navets" => [
+                'short' => "Navets tendres, parfaits pour les soupes.",
+                'long' => "Nos navets sont cultivés localement et apportent douceur et saveur à vos plats mijotés."
+            ],
+            "100g Poireaux" => [
+                'short' => "Poireaux frais, riches en fibres.",
+                'long' => "Idéals pour les quiches, potages ou en fondue, nos poireaux sont récoltés à la main."
+            ],
+            "200g Radis" => [
+                'short' => "Radis croquants et légèrement piquants.",
+                'long' => "À déguster à la croque au sel ou en salade, nos radis sont cultivés sans pesticides."
+            ],
+            "4 Salades" => [
+                'short' => "Salades fraîches et croquantes.",
+                'long' => "Idéales pour accompagner tous vos plats, nos salades sont récoltées le matin même."
+            ],
+            "400g Courgettes" => [
+                'short' => "Courgettes tendres, parfaites à griller.",
+                'long' => "Nos courgettes sont idéales pour les gratins, poêlées ou en ratatouille."
+            ],
+            "300g Concombres" => [
+                'short' => "Concombres frais, parfaits en salade.",
+                'long' => "Cultivés localement, nos concombres sont croquants et désaltérants."
+            ],
+            "200g Oignons" => [
+                'short' => "Oignons doux, parfaits pour la cuisine.",
+                'long' => "Nos oignons sont sélectionnés pour leur saveur et leur douceur, idéals pour toutes vos recettes."
+            ],
+            "100g Ail" => [
+                'short' => "Ail frais, goût puissant.",
+                'long' => "Notre ail est récolté à la main et apporte du caractère à vos plats."
+            ],
+            "200g Échalotes" => [
+                'short' => "Échalotes parfumées, goût subtil.",
+                'long' => "Idéales pour les vinaigrettes, sauces ou à confire."
+            ],
+            "800g Pommes de terre" => [
+                'short' => "Pommes de terre fondantes.",
+                'long' => "Parfaites pour les purées, gratins ou frites maison."
+            ],
+            "300g Champignons" => [
+                'short' => "Champignons frais, goût boisé.",
+                'long' => "Idéals pour les poêlées, omelettes ou risottos."
+            ],
+            "300g Épinards" => [
+                'short' => "Épinards tendres, riches en fer.",
+                'long' => "À cuisiner en gratin, quiche ou simplement poêlés."
+            ],
+            "400g Blettes" => [
+                'short' => "Blettes fraîches, parfaites en gratin.",
+                'long' => "Nos blettes sont cultivées localement et idéales pour les tartes salées."
+            ],
+            "300g Haricots verts" => [
+                'short' => "Haricots verts croquants.",
+                'long' => "À cuire à la vapeur ou à la poêle, parfaits en accompagnement."
+            ],
+            "300g Petits pois" => [
+                'short' => "Petits pois sucrés et tendres.",
+                'long' => "Idéals pour les purées, risottos ou en salade."
+            ],
+            "500g Lentilles" => [
+                'short' => "Lentilles vertes, riches en protéines.",
+                'long' => "À cuisiner en salade, soupe ou dahl."
+            ],
+            "500g Pois chiches" => [
+                'short' => "Pois chiches, parfaits pour le houmous.",
+                'long' => "Riches en fibres et protéines, à utiliser en salade ou en curry."
+            ],
+            "200g Noisettes" => [
+                'short' => "Noisettes croquantes, riches en goût.",
+                'long' => "À grignoter ou à intégrer dans vos pâtisseries."
+            ],
+            "200g Noix" => [
+                'short' => "Noix fraîches, riches en oméga-3.",
+                'long' => "À consommer nature ou dans vos salades."
+            ],
+            "200g Amandes" => [
+                'short' => "Amandes douces, riches en magnésium.",
+                'long' => "À croquer ou à utiliser en pâtisserie."
+            ],
+            "200g Pistaches" => [
+                'short' => "Pistaches grillées, riches en saveur.",
+                'long' => "À déguster à l'apéritif ou à intégrer dans vos desserts."
+            ],
+            "200g Fromage de chèvre" => [
+                'short' => "Fromage de chèvre artisanal.",
+                'long' => "Parfait pour les salades, tartines ou gratins."
+            ],
+            "200g Fromage de brebis" => [
+                'short' => "Fromage de brebis doux et crémeux.",
+                'long' => "Idéal pour les plateaux de fromages ou en salade."
+            ],
+            "200g Fromage de vache" => [
+                'short' => "Fromage de vache fondant.",
+                'long' => "À savourer en raclette ou en sandwich."
+            ],
+            "4 Yaourts" => [
+                'short' => "Yaourts nature onctueux.",
+                'long' => "Fabriqués à partir de lait local, parfaits pour le petit-déjeuner."
+            ],
+            "250g Beurre" => [
+                'short' => "Beurre doux artisanal.",
+                'long' => "Idéal pour tartiner ou cuisiner."
+            ],
+            "200g Crème fraîche" => [
+                'short' => "Crème fraîche épaisse.",
+                'long' => "Parfaite pour les sauces et desserts."
+            ],
+            "1 Pain (400g)" => [
+                'short' => "Pain au levain croustillant.",
+                'long' => "Cuit au feu de bois, idéal pour accompagner vos repas."
+            ],
+            "1 Brioche (350g)" => [
+                'short' => "Brioche moelleuse et dorée.",
+                'long' => "Parfaite pour le petit-déjeuner ou le goûter."
+            ],
+            "4 Cookies (120g)" => [
+                'short' => "Cookies gourmands aux pépites de chocolat.",
+                'long' => "À savourer au goûter ou en dessert."
+            ],
+            "1 Tarte (500g)" => [
+                'short' => "Tarte rustique aux fruits de saison.",
+                'long' => "Pâte croustillante et garniture généreuse."
+            ],
+            "250g Confiture" => [
+                'short' => "Confiture artisanale, fruits locaux.",
+                'long' => "Idéale pour les tartines ou les desserts."
+            ],
+            "350g Sauce tomate" => [
+                'short' => "Sauce tomate maison, riche en goût.",
+                'long' => "Préparée avec des tomates fraîches et des herbes du jardin."
+            ],
+            "1kg Farine" => [
+                'short' => "Farine de blé locale.",
+                'long' => "Parfaite pour pains, gâteaux et pâtes fraîches."
+            ],
+            "1L Jus de pomme" => [
+                'short' => "Jus de pomme artisanal, sans sucre ajouté.",
+                'long' => "Pressé à froid, goût fruité et rafraîchissant."
+            ],
+            "75cl Cidre" => [
+                'short' => "Cidre brut, bulles fines.",
+                'long' => "Élaboré à partir de pommes locales, parfait à l'apéritif."
+            ],
+            "33cl Bière" => [
+                'short' => "Bière blonde artisanale.",
+                'long' => "Brassée localement, légère et rafraîchissante."
+            ],
+            "20 sachets Tisane" => [
+                'short' => "Tisane aux plantes bio.",
+                'long' => "Mélange relaxant de plantes locales pour une pause douceur."
+            ]
         ];
 
-        $mediaTypesBySlug = [];
-        foreach ($mediaTypes as $mediaType) {
-            $mediaTypesBySlug[$mediaType->getSlug()] = $mediaType;
-        }
+        $conservationValues = [
+            "À conserver au réfrigérateur entre 2°C et 4°C.",
+            "À conserver dans un endroit frais et sec, à l'abri de la lumière.",
+            "À consommer rapidement après ouverture.",
+            "Se conserve 3 jours au réfrigérateur.",
+            "À conserver dans le bac à légumes du réfrigérateur.",
+            "À conserver dans un pot hermétique.",
+            "À conserver à température ambiante.",
+            "À congeler si non consommé sous 48h.",
+            "À conserver dans un endroit sec, à l'abri de l'humidité.",
+            "À consommer de préférence avant la date indiquée sur l'emballage."
+        ];
+        $adviceValues = [
+            "Idéal en salade ou en accompagnement.",
+            "Parfait pour vos recettes de pâtisserie.",
+            "À déguster nature ou avec un peu de sel.",
+            "À cuire à la vapeur ou à la poêle.",
+            "À consommer frais pour profiter de toutes ses saveurs.",
+            "À utiliser dans vos gratins ou quiches.",
+            "À tartiner sur du pain frais.",
+            "À mélanger dans un yaourt ou un smoothie.",
+            "À faire revenir avec un filet d'huile d'olive.",
+            "À savourer en dessert ou en collation."
+        ];
 
-        // Créer un produit pour chaque image et l'assigner à une catégorie principale de façon cyclique
-        $mainCategories = array_values(array_filter($categories, function($cat) {
-            return $cat->getCategoryParent() === null;
-        }));
-        
-        if (empty($mainCategories)) {
-            throw new \Exception("Aucune catégorie principale trouvée. Assurez-vous d'avoir des catégories sans parent.");
-        }
+        $productToCategoryChild = [
+            "250g Flocons d'avoine" => "Produits transformés",
+            "6 Oeufs" => "Oeufs",
+            "1 Saucisson" => "Viande",
+            "100g Cornichons" => "Produits transformés",
+            "3 Aubergines" => "Produits de saison",
+            "500g Pêches" => "Fruits",
+            "200g Tomates cerises" => "Produits de saison",
+            "400g Tomates" => "Produits de saison",
+            "500g Pommes" => "Fruits",
+            "600g Carottes" => "Produits de saison",
+            "300g Carottes" => "Produits de saison",
+            "400g Fraises" => "Fruits",
+            "800g Poires" => "Fruits",
+            "400g Abricots" => "Fruits",
+            "200g Cerises" => "Fruits",
+            "700g Prunes" => "Fruits",
+            "100g Navets" => "Légumes anciens",
+            "100g Poireaux" => "Produits de saison",
+            "200g Radis" => "Produits de saison",
+            "4 Salades" => "Produits de saison",
+            "400g Courgettes" => "Produits de saison",
+            "300g Concombres" => "Produits de saison",
+            "200g Oignons" => "Produits de saison",
+            "100g Ail" => "Herbes fraîches",
+            "200g Échalotes" => "Produits de saison",
+            "800g Pommes de terre" => "Légumes anciens",
+            "300g Champignons" => "Produits de saison",
+            "300g Épinards" => "Produits de saison",
+            "400g Blettes" => "Produits de saison",
+            "300g Haricots verts" => "Produits de saison",
+            "300g Petits pois" => "Produits de saison",
+            "500g Lentilles" => "Produits transformés",
+            "500g Pois chiches" => "Produits transformés",
+            "200g Noisettes" => "Produits transformés",
+            "200g Noix" => "Produits transformés",
+            "200g Amandes" => "Produits transformés",
+            "200g Pistaches" => "Produits transformés",
+            "200g Fromage de chèvre" => "Fromages",
+            "200g Fromage de brebis" => "Fromages",
+            "200g Fromage de vache" => "Fromages",
+            "4 Yaourts" => "Yaourts artisanaux",
+            "250g Beurre" => "Beurre, crème",
+            "200g Crème fraîche" => "Beurre, crème",
+            "1 Pain (400g)" => "Pain au levain",
+            "1 Brioche (350g)" => "Brioche",
+            "4 Cookies (120g)" => "Cookies",
+            "1 Tarte (500g)" => "Tarte rustique",
+            "250g Confiture" => "Confiture",
+            "350g Sauce tomate" => "Sauce tomate",
+            "1kg Farine" => "Farine",
+            "1L Jus de pomme" => "Jus de pomme",
+            "75cl Cidre" => "Cidre",
+            "33cl Bière" => "Bière blonde",
+            "20 sachets Tisane" => "Tisane",
+        ];
 
         for ($i = 0; $i < 50; $i++) {
             $img = $images[$i % count($images)];
             $product = new Product();
             $product->setName($img['name']);
+            // Ajout des descriptions personnalisées si elles existent, sinon fallback faker
+            if (isset($productDescriptions[$img['name']])) {
+                $product->setShortDescription($productDescriptions[$img['name']]['short']);
+                $product->setLongDescription($productDescriptions[$img['name']]['long']);
+            } else {
+                $product->setShortDescription($this->faker->realText(100));
+                $product->setLongDescription($this->faker->realText(400));
+            }
             $product->setQuantity($this->faker->numberBetween(1, 50));
             $product->setUnitPrice($this->faker->randomFloat(2, 3, 100));
             $product->setPrice($this->faker->randomFloat(2, 3, 100));
+            $product->setOldPrice($this->faker->optional(0.5)->randomFloat(2, 3, 150));
             $product->setFeatured($this->faker->boolean);
-            $product->addCategory($mainCategories[$i % count($mainCategories)]);
+            // Associer la bonne catégorie enfant
+            $categoryName = $productToCategoryChild[$img['name']] ?? null;
+            if ($categoryName) {
+                $category = null;
+                foreach ($categories as $cat) {
+                    if ($cat->getName() === $categoryName) {
+                        $category = $cat;
+                        break;
+                    }
+                }
+                if ($category) {
+                    $product->addCategory($category);
+                }
+            }
             foreach ($this->faker->randomElements($tags, rand(1, 3)) as $tag) {
                 $product->addTag($tag);
             }
             $product->setUnity($this->faker->randomElement($units));
+            $product->setStock($this->faker->numberBetween(1, 30));
             $product->setOrigin($this->faker->country());
-            $product->setLongDescription($this->faker->realText(400));
-            $product->setConservation($this->faker->sentence(6));
-            $product->setPreparationAdvice($this->faker->sentence(8));
+            $product->setConservation($conservationValues[array_rand($conservationValues)]);
+            $product->setPreparationAdvice($adviceValues[array_rand($adviceValues)]);
             $product->setStatus("on");
             $randomFarm = $farms[array_rand($farms)];
             $product->setFarm($randomFarm);
             $manager->persist($product);
             $products[] = $product;
         }
-        
+
         $manager->flush();
 
-        // Créer les médias pour chaque produit (seulement si le fichier existe)
         foreach ($products as $idx => $product) {
             $img = $images[$idx % count($images)];
-            $filePath = __DIR__ . '/../../public/media/' . $img['file'];
+            $filePath = __DIR__ . '/../../public/media/seeders/products/' . $img['file'];
             if (file_exists($filePath)) {
                 // THUMBNAIL
                 $mediaThumb = new \App\Entity\Media();
                 $mediaThumb->setRealName($img['file']);
-                $mediaThumb->setRealPath('media/' . $img['file']);
-                $mediaThumb->setPublicPath('media/' . $img['file']);
+                $mediaThumb->setRealPath('media/seeders/products/' . $img['file']);
+                $mediaThumb->setPublicPath('media/seeders/products/' . $img['file']);
                 $mediaThumb->setMime(mime_content_type($filePath));
                 $mediaThumb->setStatus('on');
                 $mediaThumb->setUploadedAt(new \DateTime());
@@ -434,8 +831,8 @@ class AppFixtures extends Fixture
                 // IMAGE
                 $mediaImg = new \App\Entity\Media();
                 $mediaImg->setRealName($img['file']);
-                $mediaImg->setRealPath('media/' . $img['file']);
-                $mediaImg->setPublicPath('media/' . $img['file']);
+                $mediaImg->setRealPath('media/seeders/products/' . $img['file']);
+                $mediaImg->setPublicPath('media/seeders/products/' . $img['file']);
                 $mediaImg->setMime(mime_content_type($filePath));
                 $mediaImg->setStatus('on');
                 $mediaImg->setUploadedAt(new \DateTime());

@@ -24,6 +24,7 @@ use App\Repository\FarmTypeRepository;
 final class FarmController extends AbstractController
 {
     #[Route('api/public/v1/farms/farmer/{id}', name: 'api_get_farms_by_farmer', methods: ['GET'])]
+    #[OA\Tag(name: 'Farms')]
     #[OA\Parameter(
         name: 'id',
         in: 'path',
@@ -39,6 +40,15 @@ final class FarmController extends AbstractController
             items: new OA\Items(ref: new Model(type: Farm::class, groups: ['farm','stats']))
         )
     )]
+    #[OA\Response(
+        response: 404,
+        description: 'Fermier non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Fermier non trouvé')
+            ]
+        )
+    )]
     public function getFarmsByFarmer(int $id, FarmRepository $farmRepository, SerializerInterface $serializer): JsonResponse
     {
         $farms = $farmRepository->findByFarmerId($id);
@@ -47,9 +57,10 @@ final class FarmController extends AbstractController
     }
 
     #[Route('api/public/v1/farms', name: 'api_get_all_farms', methods: ['GET'])]
+    #[OA\Tag(name: 'Farms')]
     #[OA\Response(
         response: 200,
-        description: 'Returns a list of all farms',
+        description: 'Retourne la liste de toutes les fermes',
         content: new OA\JsonContent(
             type: 'array',
             items: new OA\Items(ref: new Model(type: Farm::class, groups: ['farm','stats']))
@@ -69,65 +80,91 @@ final class FarmController extends AbstractController
     }
 
     #[Route('api/public/v1/farm/{farm}', name: 'api_get_farm', methods: ['GET'])]
+    #[OA\Tag(name: 'Farms')]
     #[OA\Parameter(
         name: 'farm',
         in: 'path',
-        description: 'ID of the farm',
+        description: 'ID de la ferme',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\Response(
         response: 200,
-        description: 'Returns a farm',
+        description: 'Retourne une ferme',
         content: new OA\JsonContent(ref: new Model(type: Farm::class, groups: ['farm', 'stats', 'farm_products']))
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Ferme non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Ferme non trouvée')
+            ]
+        )
     )]
     /**
      * Summary of get
      * @param \App\Entity\Farm $farm
      * @param \Symfony\Component\Serializer\SerializerInterface $serializer
+     * @param \App\Repository\ProductRepository $productRepository
      * @return JsonResponse
      */
-    public function get(Farm $farm, SerializerInterface $serializer): JsonResponse
+    public function get(Farm $farm, SerializerInterface $serializer, ProductRepository $productRepository): JsonResponse
     {
-        $jsonData = $serializer->serialize($farm, 'json', ['groups' => ['farm', 'stats', 'farm_products']]);
+        $products = $productRepository->findBy(['farm' => $farm]);
+        $jsonData = $serializer->serialize([
+            'farm' => $farm,
+            'products' => $products
+        ], 'json', ['groups' => ['farm', 'stats', 'farm_products', 'product']]);
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
     #[Route('api/v1/create-farm', name: 'api_create_farm', methods: ['POST'])]
+    #[OA\Tag(name: 'Farms')]
     #[OA\RequestBody(
-        description: 'Farm data',
+        description: 'Données de la ferme',
         required: true,
         content: new OA\JsonContent(
+            required: ['name', 'address', 'city', 'zipCode'],
             properties: [
-                new OA\Property(property: 'name', type: 'string', description: 'Name of the farm', required: ['true']),
-                new OA\Property(property: 'description', type: 'string', description: 'Description of the farm'),
-                new OA\Property(property: 'address', type: 'string', description: 'Address of the farm', required: ['true']),
-                new OA\Property(property: 'city', type: 'string', description: 'City of the farm', required: ['true']),
-                new OA\Property(property: 'zipCode', type: 'string', description: 'Zip code of the farm', required: ['true']),
-                new OA\Property(property: 'region', type: 'string', description: 'Region of the farm'),
+                new OA\Property(property: 'name', type: 'string', description: 'Nom de la ferme', example: 'Ferme du Moulin'),
+                new OA\Property(property: 'description', type: 'string', description: 'Description de la ferme', example: 'Production bio'),
+                new OA\Property(property: 'address', type: 'string', description: 'Adresse de la ferme', example: '1 rue des champs'),
+                new OA\Property(property: 'city', type: 'string', description: 'Ville de la ferme', example: 'Lyon'),
+                new OA\Property(property: 'zipCode', type: 'string', description: 'Code postal', example: '69000'),
+                new OA\Property(property: 'region', type: 'string', description: 'Région', example: 'Auvergne-Rhône-Alpes'),
                 new OA\Property(property: 'coordinates', type: 'object', properties: [
-                    new OA\Property(property: 'lat', type: 'string'),
-                    new OA\Property(property: 'lng', type: 'string')
+                    new OA\Property(property: 'lat', type: 'string', example: '45.75'),
+                    new OA\Property(property: 'lng', type: 'string', example: '4.85')
                 ]),
-                new OA\Property(property: 'phone', type: 'string', description: 'Phone number'),
-                new OA\Property(property: 'email', type: 'string', description: 'Email address'),
-                new OA\Property(property: 'website', type: 'string', description: 'Website URL'),
-                new OA\Property(property: 'farmSize', type: 'string', description: 'Size of the farm'),
-                new OA\Property(property: 'mainProducts', type: 'array', items: new OA\Items(type: 'string')),
-                new OA\Property(property: 'seasonality', type: 'string', description: 'Seasonality information'),
-                new OA\Property(property: 'deliveryZones', type: 'array', items: new OA\Items(type: 'string')),
-                new OA\Property(property: 'deliveryMethods', type: 'array', items: new OA\Items(type: 'string')),
-                new OA\Property(property: 'minimumOrder', type: 'string', description: 'Minimum order requirement'),
-                new OA\Property(property: 'profileImage', type: 'string', description: 'Profile image URL'),
-                new OA\Property(property: 'galleryImages', type: 'array', items: new OA\Items(type: 'string')),
-                new OA\Property(property: 'types', type: 'array', items: new OA\Items(type: 'integer'))
+                new OA\Property(property: 'phone', type: 'string', description: 'Téléphone', example: '0601020304'),
+                new OA\Property(property: 'email', type: 'string', description: 'Email', example: 'ferme@email.com'),
+                new OA\Property(property: 'website', type: 'string', description: 'Site web', example: 'https://ferme.com'),
+                new OA\Property(property: 'farmSize', type: 'string', description: 'Taille de la ferme', example: '10ha'),
+                new OA\Property(property: 'mainProducts', type: 'array', items: new OA\Items(type: 'string'), example: ['pommes', 'poires']),
+                new OA\Property(property: 'seasonality', type: 'string', description: 'Saisonnalité', example: 'Toute l\'année'),
+                new OA\Property(property: 'deliveryZones', type: 'array', items: new OA\Items(type: 'string'), example: ['Lyon', 'Villeurbanne']),
+                new OA\Property(property: 'deliveryMethods', type: 'array', items: new OA\Items(type: 'string'), example: ['livraison', 'retrait']),
+                new OA\Property(property: 'minimumOrder', type: 'string', description: 'Commande minimum', example: '20€'),
+                new OA\Property(property: 'profileImage', type: 'string', description: 'Image de profil', example: 'https://img.com/ferme.jpg'),
+                new OA\Property(property: 'galleryImages', type: 'array', items: new OA\Items(type: 'string'), example: ['https://img.com/1.jpg']),
+                new OA\Property(property: 'types', type: 'array', items: new OA\Items(type: 'integer'), example: [1,2])
             ]
         )
     )]
     #[OA\Response(
         response: 201,
-        description: 'Returns the created farm',
+        description: 'Retourne la ferme créée',
         content: new OA\JsonContent(ref: new Model(type: Farm::class))
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Entrée invalide',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Erreur de validation')
+            ]
+        )
     )]
     /**
      * Summary of create
@@ -194,6 +231,51 @@ final class FarmController extends AbstractController
     }
 
     #[Route("api/v1/farm/{farm}", name:"api_update_farm", methods: ["PATCH"])]
+    #[OA\Tag(name: 'Farms')]
+    #[OA\Parameter(
+        name: 'farm',
+        in: 'path',
+        description: 'ID de la ferme à modifier',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\RequestBody(
+        description: 'Champs à modifier',
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'name', type: 'string', example: 'Nouvelle ferme'),
+                new OA\Property(property: 'description', type: 'string', example: 'Description modifiée'),
+                new OA\Property(property: 'address', type: 'string', example: '2 rue modifiée'),
+                new OA\Property(property: 'city', type: 'string', example: 'Paris'),
+                new OA\Property(property: 'zipCode', type: 'string', example: '75000'),
+                new OA\Property(property: 'region', type: 'string', example: 'Île-de-France'),
+                new OA\Property(property: 'types', type: 'array', items: new OA\Items(type: 'integer'), example: [1])
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 204,
+        description: 'Ferme modifiée avec succès'
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Entrée invalide',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Erreur de validation')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Ferme non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Ferme non trouvée')
+            ]
+        )
+    )]
     /**
      * Summary of update
      * @param \App\Entity\Farm $farm
@@ -250,6 +332,27 @@ final class FarmController extends AbstractController
     }
 
     #[Route("api/v1/farm/{farm}", name:"api_delete_farm", methods: ["DELETE"])]
+    #[OA\Tag(name: 'Farms')]
+    #[OA\Parameter(
+        name: 'farm',
+        in: 'path',
+        description: 'ID de la ferme à supprimer',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 204,
+        description: 'Ferme supprimée avec succès'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Ferme non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Ferme non trouvée')
+            ]
+        )
+    )]
     /**
      * Summary of delete
      * @param \App\Entity\Farm $farm
@@ -272,6 +375,52 @@ final class FarmController extends AbstractController
     }
 
     #[Route('api/v1/farm/{farm}/members', name: 'api_add_farm_member', methods: ['POST'])]
+    #[OA\Tag(name: 'Farms')]
+    #[OA\Parameter(
+        name: 'farm',
+        in: 'path',
+        description: 'ID de la ferme',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\RequestBody(
+        description: 'Données du membre à ajouter',
+        required: true,
+        content: new OA\JsonContent(
+            required: ['user_id'],
+            properties: [
+                new OA\Property(property: 'user_id', type: 'integer', example: 5),
+                new OA\Property(property: 'role', type: 'string', example: 'member')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Membre ajouté à la ferme',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'message', type: 'string', example: 'Membre ajouté à la ferme')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Entrée invalide',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'user_id manquant')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Utilisateur non trouvé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Utilisateur non trouvé')
+            ]
+        )
+    )]
     /**
      * Ajoute un membre (FarmUser) à une ferme existante
      * @param Farm $farm

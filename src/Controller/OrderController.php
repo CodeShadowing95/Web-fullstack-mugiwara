@@ -13,11 +13,41 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
+use OpenApi\Attributes as OA;
 
 #[Route('/api')]
 class OrderController extends AbstractController
 {
     #[Route('/cart/validate', name: 'order_validate_cart', methods: ['POST'])]
+    #[OA\Tag(name: 'Orders')]
+    #[OA\Response(
+        response: 201,
+        description: 'Commandes créées avec succès',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'message', type: 'string', example: 'Orders created successfully'),
+                new OA\Property(property: 'orders', type: 'array', items: new OA\Items(type: 'object'))
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Panier vide ou quantité invalide',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Cart is empty')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Vous devez être connecté pour valider votre panier')
+            ]
+        )
+    )]
     public function validateCart(
         CartRepository $cartRepository,
         OrderRepository $orderRepository,
@@ -130,6 +160,24 @@ class OrderController extends AbstractController
     }
 
     #[Route('/orders', name: 'order_list', methods: ['GET'])]
+    #[OA\Tag(name: 'Orders')]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne la liste des commandes de l\'utilisateur',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(type: 'object')
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Vous devez être connecté pour voir vos commandes')
+            ]
+        )
+    )]
     public function list(
         OrderRepository $orderRepository,
         SerializerInterface $serializer
@@ -175,6 +223,46 @@ class OrderController extends AbstractController
     }
 
     #[Route('/orders/{id}', name: 'order_show', methods: ['GET'])]
+    #[OA\Tag(name: 'Orders')]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: 'ID de la commande',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Retourne le détail d\'une commande',
+        content: new OA\JsonContent(type: 'object')
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Non authentifié',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Vous devez être connecté pour voir les détails d\'une commande')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Accès refusé',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Access denied')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Commande non trouvée',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Order not found')
+            ]
+        )
+    )]
     public function show(
         int $id,
         OrderRepository $orderRepository,
