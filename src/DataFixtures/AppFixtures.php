@@ -209,10 +209,31 @@ class AppFixtures extends Fixture
 
         // Créer d'abord les types de fermes
         $farmTypes = [];
-        for ($i = 0; $i <= 5; $i++) {
+        $farmTypesData = [
+            ['id' => 1, 'name' => 'Maraîchage', 'description' => 'Culture de légumes'],
+            ['id' => 2, 'name' => 'Arboriculture', 'description' => 'Culture de fruits'],
+            ['id' => 3, 'name' => 'Élevage bovin', 'description' => 'Élevage de bovins'],
+            ['id' => 4, 'name' => 'Élevage ovin/caprin', 'description' => 'Élevage de moutons et chèvres'],
+            ['id' => 5, 'name' => 'Élevage porcin', 'description' => 'Élevage de porcs'],
+            ['id' => 6, 'name' => 'Aviculture', 'description' => 'Élevage de volailles'],
+            ['id' => 7, 'name' => 'Apiculture', 'description' => 'Production de miel'],
+            ['id' => 8, 'name' => 'Céréaliculture', 'description' => 'Culture de céréales'],
+            ['id' => 9, 'name' => 'Viticulture', 'description' => 'Culture de la vigne'],
+            ['id' => 10, 'name' => 'Horticulture', 'description' => 'Culture de fleurs et plantes ornementales'],
+            ['id' => 11, 'name' => 'Polyculture-élevage', 'description' => 'Mixte culture et élevage'],
+            ['id' => 12, 'name' => 'Agroforesterie', 'description' => 'Association arbres et cultures'],
+            ['id' => 13, 'name' => 'Permaculture', 'description' => 'Agriculture durable'],
+            ['id' => 14, 'name' => 'Aquaculture', 'description' => 'Élevage aquatique'],
+            ['id' => 15, 'name' => 'Transformation artisanale', 'description' => 'Production artisanale'],
+            ['id' => 16, 'name' => 'Agriculture biologique', 'description' => 'Production bio certifiée'],
+            ['id' => 17, 'name' => 'Agriculture urbaine', 'description' => 'Agriculture en ville'],
+            ['id' => 18, 'name' => 'Ferme pédagogique', 'description' => 'Ferme éducative']
+        ];
+
+        foreach ($farmTypesData as $typeData) {
             $farmType = new FarmType();
-            $farmType->setName($this->faker->word);
-            $farmType->setDescription($this->faker->text(20));
+            $farmType->setName($typeData['name']);
+            $farmType->setDescription($typeData['description']);
             $manager->persist($farmType);
             $farmTypes[] = $farmType;
         }
@@ -256,6 +277,7 @@ class AppFixtures extends Fixture
             $farm->setName($this->faker->company);
             $farm->setDescription($this->faker->text(100));
             $farm->setAddress($this->faker->address);
+            $farm->setAvatar($this->faker->imageUrl(200, 200, 'farm'));
             $farm->setCity($this->faker->city);
             $farm->setZipCode($this->faker->postcode);
             $farm->setRegion($this->faker->region);
@@ -279,7 +301,15 @@ class AppFixtures extends Fixture
                 'https://picsum.photos/800/600'
             ]);
             $farm->setStatus("on");
-            $farm->addType($farmTypes[array_rand($farmTypes)]);
+            
+            // Ajouter 1 à 3 types de ferme aléatoires
+            $numTypes = rand(1, 3);
+            $shuffledTypes = $farmTypes;
+            shuffle($shuffledTypes);
+            for ($j = 0; $j < $numTypes; $j++) {
+                $farm->addType($shuffledTypes[$j]);
+            }
+            
             $manager->persist($farm);
             $farms[] = $farm;
         }

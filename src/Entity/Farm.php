@@ -64,6 +64,10 @@ class Farm
     #[Groups(["farm"])]
     private ?string $profileImage = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $avatar = null;
+
     #[ORM\Column(type: "json", nullable: true)]
     #[Groups(["farm"])]
     private array $galleryImages = [];
@@ -343,6 +347,19 @@ class Farm
     public function setProfileImage(?string $profileImage): static
     {
         $this->profileImage = $profileImage;
+
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): static
+    {
+        $this->avatar = $avatar;
+
         return $this;
     }
 

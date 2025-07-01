@@ -46,7 +46,7 @@ final class FarmController extends AbstractController
         return new JsonResponse($jsonData, Response::HTTP_OK, [], true);
     }
 
-    #[Route('api/public/v1/farms', name: 'api_get_all_farm', methods: ['GET'])]
+    #[Route('api/public/v1/farms', name: 'api_get_all_farms', methods: ['GET'])]
     #[OA\Response(
         response: 200,
         description: 'Returns a list of all farms',
@@ -144,6 +144,10 @@ final class FarmController extends AbstractController
     public function create(Request $request, UrlGeneratorInterface $urlGenerator, ProductRepository $productRepository, FarmTypeRepository $farmTypeRepository, UserRepository $userRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, ValidatorInterface $validator): JsonResponse
     {
         $farm = $serializer->deserialize($request->getContent(), Farm::class, 'json');
+        $data = json_decode($request->getContent(), true);
+        if (isset($data['avatar'])) {
+            $farm->setAvatar($data['avatar']);
+        }
         $requestData = $request->toArray();
 
         // Supprimer les FarmType vides créés par la désérialisation
@@ -206,6 +210,10 @@ final class FarmController extends AbstractController
         $updatedFarm = $serializer->deserialize(
             $request->getContent(), Farm::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $farm]
         );
+        $data = json_decode($request->getContent(), true);
+        if (isset($data['avatar'])) {
+            $updatedFarm->setAvatar($data['avatar']);
+        }
 
         $requestData = $request->toArray();
 
