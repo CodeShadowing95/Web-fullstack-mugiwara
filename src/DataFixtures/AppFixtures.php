@@ -11,6 +11,7 @@ use App\Entity\Persona;
 use App\Entity\MediaType;
 use App\Entity\ProductCategory;
 use App\Entity\FarmUser;
+use App\Entity\VilleFrance;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -29,6 +30,24 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
+        // Charger les villes françaises depuis l'API
+        $response = file_get_contents('https://geo.api.gouv.fr/communes');
+        $villesFrance = json_decode($response, true);
+
+        // Juste 100 villes
+        $villesFrance = array_slice($villesFrance, 0, 100);
+
+        foreach ($villesFrance as $villeData) {
+            $ville = new \App\Entity\VilleFrance();
+            $ville->setNom($villeData['nom']);
+            $ville->setCode($villeData['code']);
+            $ville->setCodeDepartement($villeData['codeDepartement']);
+            $ville->setCodeRegion($villeData['codeRegion']);
+            $ville->setCodesPostaux($villeData['codesPostaux']);
+            $manager->persist($ville);
+        }
+        $manager->flush();
+
 
         // Créer les catégories de produits
         $categories = [];
