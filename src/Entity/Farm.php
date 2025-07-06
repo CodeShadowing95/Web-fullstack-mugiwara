@@ -16,6 +16,18 @@ class Farm
 {
     use StatisticsPropertiesTraits;
 
+    #[ORM\Column(name: "farm_types", length: 255, nullable: true)]
+    #[Groups(["farm"])]
+    private ?string $farmTypes = null;
+
+    #[ORM\Column(name: "rating", type: "float", nullable: true)]
+    #[Groups(["farm"])]
+    private ?float $rating = null;
+
+    #[ORM\Column(name: "total_sales", type: "integer", nullable: true)]
+    #[Groups(["farm"])]
+    private ?int $totalSales = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(["farm"])]
     private ?string $region = null;
@@ -478,6 +490,39 @@ class Farm
             }
         }
 
+        return $this;
+    }
+
+    public function getFarmTypes(): ?string
+    {
+        return $this->farmTypes;
+    }
+
+    public function setFarmTypes(?string $farmTypes): static
+    {
+        $this->farmTypes = $farmTypes;
+        return $this;
+    }
+
+    public function getRating(): ?float
+    {
+        return $this->rating;
+    }
+
+    public function setRating(?float $rating): static
+    {
+        $this->rating = $rating;
+        return $this;
+    }
+
+    public function getTotalSales(): ?int
+    {
+        return $this->totalSales;
+    }
+
+    public function setTotalSales(?int $totalSales): static
+    {
+        $this->totalSales = $totalSales;
         return $this;
     }
 }

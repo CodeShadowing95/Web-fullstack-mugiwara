@@ -415,9 +415,18 @@ class AppFixtures extends Fixture
             $numTypes = rand(1, 3);
             $shuffledTypes = $farmTypes;
             shuffle($shuffledTypes);
+            $selectedTypes = [];
             for ($j = 0; $j < $numTypes; $j++) {
                 $farm->addType($shuffledTypes[$j]);
+                $selectedTypes[] = $shuffledTypes[$j]->getName();
             }
+            $farm->setFarmTypes(implode(', ', $selectedTypes));
+
+            // Ajouter une note aléatoire entre 0 et 5
+            $farm->setRating($this->faker->randomFloat(1, 3.5, 5.0));
+
+            // Ajouter un nombre total de ventes aléatoire
+            $farm->setTotalSales($this->faker->numberBetween(0, 1000));
             
             $manager->persist($farm);
             $farms[] = $farm;
